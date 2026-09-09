@@ -20,6 +20,7 @@ For most projects, the built-in `spec-driven` schema is all you need. For comple
 | `behaviour-driven` | `proposal -> (specs, design) -> tasks` | Observable behaviour carries the intent, written as Gherkin-style `GIVEN`/`WHEN`/`THEN` scenarios in OpenSpec Markdown delta specs |
 | `spec-driven-with-adr` | `proposal -> specs / design -> adr -> tasks` | You need durable Architecture Decision Records on top of spec-driven |
 | `intent-driven` | `proposal -> (specs, design) -> adr -> tasks` | `behaviour-driven` plus durable ADRs: behaviour specs, design, and long-lived decisions |
+| `intent-driven-engineering` | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work needing source-aware companion skills and phase-specific engineering guidance |
 | `event-driven` | `event-storming -> event-modeling -> specs -> design -> asyncapi -> tasks` | Event-Driven Architecture Systems |
 | `minimalist` | `specs -> tasks` | Small, well-scoped, low-risk changes |
 
@@ -45,7 +46,7 @@ Read this file: https://raw.githubusercontent.com/intent-driven-dev/openspec-sch
 
 Otherwise the guide will enumerate all available schemas and ask you to pick one.
 
-Schemas declare their companion skills in a `skills.txt` manifest inside the schema directory. The install guide's Step 6 installs those skills from [intent-driven-dev/skills](https://github.com/intent-driven-dev/skills) into your project's `.agents/skills/`, so installing a schema also brings in the skills it works best with.
+Schemas declare companion skills in a `skills.txt` manifest inside their schema directory. The [install guide](./AGENT_INSTALL.md) installs them into your project's `.agents/skills/`. Existing bare skill names remain compatible with [intent-driven-dev/skills](https://github.com/intent-driven-dev/skills); a schema can also use source-qualified tab-delimited declarations to install a complete skill directory from another GitHub repository.
 
 ### Example: intent-driven `config.yaml`
 
@@ -167,6 +168,36 @@ openspec schema validate intent-driven
 ```
 
 For more details, see `openspec/schemas/intent-driven/README.md`.
+
+### Intent-Driven Engineering
+
+`intent-driven-engineering` extends `intent-driven` with phase-specific
+engineering guidance and source-qualified companion skills from both
+[`intent-driven-dev/skills`](https://github.com/intent-driven-dev/skills) and
+[`mattpocock/skills`](https://github.com/mattpocock/skills). Its installer
+clones each declared source once and preserves existing local skills unless
+`--force` is explicit.
+
+Artifact order:
+
+```text
+proposal -> (specs, design) -> adr -> tasks
+```
+
+Activation:
+
+```yaml
+schema: intent-driven-engineering
+```
+
+Validate:
+
+```bash
+openspec schema validate intent-driven-engineering
+```
+
+For phase guidance and the declared skill set, see
+`openspec/schemas/intent-driven-engineering/README.md`.
 
 ### Event-Driven
 

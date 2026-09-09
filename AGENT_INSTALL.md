@@ -1,6 +1,6 @@
 # Agent Install Guide
 
-Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare their companion skills in a `skills.txt` manifest inside the schema directory; those skills are sourced from https://github.com/intent-driven-dev/skills and installed in Step 6.
+Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ Use this flow when installing any schema from this repository into an existing O
 ## Step 1 — Clone This Repository
 
 ```bash
-git clone https://github.com/intent-driven-dev/openspec-schemas.git /tmp/openspec-schemas
+git clone https://github.com/Nebuless/openspec-schemas.git /tmp/openspec-schemas
 ```
 
 ## Step 2 — Select a Schema
@@ -96,24 +96,33 @@ cat $HOME/.openspec/schemas/<schema-name>/skills.txt
 
 **If there is no `skills.txt`**, skip this step — the schema has no associated skills.
 
-Otherwise, clone the skills repository to a tmp folder. If `/tmp/openspec-skills` already exists, remove it first (or clone to a fresh temp dir):
+Run the source-aware installer from this repository clone:
 
 ```bash
-rm -rf /tmp/openspec-skills
-git clone --depth 1 https://github.com/intent-driven-dev/skills.git /tmp/openspec-skills
+bash /tmp/openspec-schemas/scripts/install-schema-skills.sh \
+  ./openspec/schemas/<schema-name> .
 ```
 
-For each line in `skills.txt`, copy that skill into the target project:
+The installer supports two `skills.txt` forms:
 
-```bash
-mkdir -p ./.agents/skills
-cp -R /tmp/openspec-skills/.agents/skills/<skill-name> ./.agents/skills/<skill-name>
+```text
+<skill-name>
+<github-owner/repository><TAB><repository-relative-skill-directory>
 ```
 
-- **If `./.agents/skills/<skill-name>` already exists** in the target project, do not overwrite it silently — ask the user whether to replace it or keep their copy.
-- **If a listed skill does not exist** in the clone, report it to the user and continue with the remaining skills.
+Bare names remain compatible with existing schemas and resolve from `intent-driven-dev/skills/.agents/skills/<skill-name>`. Source-qualified lines let a schema declare a complete skill directory from another GitHub repository. The separator is one literal tab.
 
-Finish by listing what was installed, for example:
+- The installer clones each declared source repository once, validates every declaration before target mutation, then copies complete skill directories into `./.agents/skills/`.
+- If a target skill directory already exists, it stops without changing that directory. Ask the user whether to preserve it or explicitly replace declared skills with `--force`:
+
+  ```bash
+  bash /tmp/openspec-schemas/scripts/install-schema-skills.sh \
+    ./openspec/schemas/<schema-name> . --force
+  ```
+
+- If a declared source or skill path is invalid or unavailable, it exits nonzero before copying any skills. Report the error instead of installing a partial set.
+
+Finish by listing what the installer installed, for example:
 
 ```text
 Installed skills: architectural-decision-records, openspec-git-discipline → ./.agents/skills/
