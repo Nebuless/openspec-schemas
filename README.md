@@ -21,12 +21,13 @@ For most projects, the built-in `spec-driven` schema is all you need. For comple
 | `spec-driven-with-adr` | `proposal -> specs / design -> adr -> tasks` | You need durable Architecture Decision Records on top of spec-driven |
 | `intent-driven` | `proposal -> (specs, design) -> adr -> tasks` | `behaviour-driven` plus durable ADRs: behaviour specs, design, and long-lived decisions |
 | `intent-driven-engineering` | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work needing source-aware companion skills and phase-specific engineering guidance |
+| `intent-driven-superpowers` | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work using Superpowers' disciplined implementation, debugging, review, and verification loops |
 | `event-driven` | `event-storming -> event-modeling -> specs -> design -> asyncapi -> tasks` | Event-Driven Architecture Systems |
 | `minimalist` | `specs -> tasks` | Small, well-scoped, low-risk changes |
 
 How the schemas relate: `intent-driven` is `behaviour-driven` plus a durable ADR artifact — the same OpenSpec Markdown delta specs, adding per-change ADR review and repository-level decision records. It still subsumes `spec-driven-with-adr` (same ADR handling, richer specs, larger companion skill set). Choose `behaviour-driven` when you don't need durable ADRs. `event-driven` is domain-specific for event-centric/AsyncAPI-first systems, and `minimalist` is for small, low-risk changes.
 
-Executable acceptance testing is not a schema feature. `behaviour-driven` and `intent-driven` both declare the opt-in [`spec-as-source`](https://github.com/intent-driven-dev/skills/tree/main/.agents/skills/spec-as-source) skill, which makes `spec.md` the executable source of truth — fenced-Gherkin authoring, acceptance-first task ordering, and specs/code zone isolation — and pulls in `acceptance-test-authoring` for the runner, extraction, linting, and reports. Install the skill when you want specs run as tests; use either schema alone for the artifact discipline without the test harness.
+Executable acceptance testing is not a schema feature. `behaviour-driven`, `intent-driven`, and `intent-driven-superpowers` declare the opt-in [`spec-as-source`](https://github.com/intent-driven-dev/skills/tree/main/.agents/skills/spec-as-source) skill, which makes `spec.md` the executable source of truth — fenced-Gherkin authoring, acceptance-first task ordering, and specs/code zone isolation — and pulls in `acceptance-test-authoring` for the runner, extraction, linting, and reports. Install the skill when you want specs run as tests; use either schema alone for the artifact discipline without the test harness.
 
 To try these schemas without installing anything, start from a template repo — [intent-driven-template](https://github.com/intent-driven-dev/intent-driven-template) or [behaviour-driven-template](https://github.com/intent-driven-dev/behaviour-driven-template) — each a starter project with the schema, OpenSpec config, commands, and companion skills already installed.
 
@@ -198,6 +199,41 @@ openspec schema validate intent-driven-engineering
 
 For phase guidance and the declared skill set, see
 `openspec/schemas/intent-driven-engineering/README.md`.
+
+### Intent-Driven Superpowers
+
+`intent-driven-superpowers` extends `intent-driven` with selected skills from
+[obra/superpowers](https://github.com/obra/superpowers), plus complementary
+engineering skills from [`intent-driven-dev/skills`](https://github.com/intent-driven-dev/skills)
+and [`mattpocock/skills`](https://github.com/mattpocock/skills). It routes
+planning, implementation, debugging, delegation, review, and verification
+discipline to the phases where each skill applies. OpenSpec remains workflow
+authority; skills do not create a competing lifecycle.
+
+The source-aware installer clones each manifest source once, installs complete
+skill directories, and refuses existing local skills unless `--force` is
+explicit.
+
+Artifact order:
+
+```text
+proposal -> (specs, design) -> adr -> tasks
+```
+
+Activation:
+
+```yaml
+schema: intent-driven-superpowers
+```
+
+Validate:
+
+```bash
+openspec schema validate intent-driven-superpowers
+```
+
+For phase routing and the complete declared skill set, see
+`openspec/schemas/intent-driven-superpowers/README.md`.
 
 ### Event-Driven
 

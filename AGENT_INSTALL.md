@@ -18,7 +18,7 @@ git clone https://github.com/Nebuless/openspec-schemas.git /tmp/openspec-schemas
 **If the user already named a schema**, check that it exists in the clone:
 
 ```bash
-ls /tmp/openspec-schemas/openspec/schemas/<schema-name>
+test -d /tmp/openspec-schemas/openspec/schemas/<schema-name>
 ```
 
 If the directory exists, proceed with that schema. If it does not exist, fall through to the enumeration path below.
@@ -125,5 +125,16 @@ Bare names remain compatible with existing schemas and resolve from `intent-driv
 Finish by listing what the installer installed, for example:
 
 ```text
-Installed skills: architectural-decision-records, openspec-git-discipline → ./.agents/skills/
+install-schema-skills: installed skills: architectural-decision-records, openspec-git-discipline -> ./.agents/skills/
 ```
+
+For source-qualified manifests, `<github-owner/repository>` identifies the
+repository and the tab-delimited path identifies the complete skill directory
+inside it. The installer validates all declarations and source paths before
+mutating the target, and clones each unique source repository once. A schema
+may mix legacy and source-qualified lines; duplicate destination skill names
+are rejected.
+
+`intent-driven-superpowers` combines skills from
+`intent-driven-dev/skills`, `mattpocock/skills`, and `obra/superpowers`. Install
+it with the same command above; no separate plugin installation is required.
