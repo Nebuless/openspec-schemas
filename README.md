@@ -22,6 +22,7 @@ For most projects, the built-in `spec-driven` schema is all you need. For comple
 | `intent-driven` | `proposal -> (specs, design) -> adr -> tasks` | `behaviour-driven` plus durable ADRs: behaviour specs, design, and long-lived decisions |
 | `intent-driven-engineering` | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work needing source-aware companion skills and phase-specific engineering guidance |
 | `intent-driven-superpowers` | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work using Superpowers' disciplined implementation, debugging, review, and verification loops |
+| `compound-intent-driven` | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work using Compound Engineering's compact define, plan, build, simplify, review, and learning loop |
 | `event-driven` | `event-storming -> event-modeling -> specs -> design -> asyncapi -> tasks` | Event-Driven Architecture Systems |
 | `minimalist` | `specs -> tasks` | Small, well-scoped, low-risk changes |
 
@@ -234,6 +235,39 @@ openspec schema validate intent-driven-superpowers
 
 For phase routing and the complete declared skill set, see
 `openspec/schemas/intent-driven-superpowers/README.md`.
+
+### Compound Intent-Driven
+
+`compound-intent-driven` maps Compound Engineering's core loop onto OpenSpec
+artifacts without creating parallel plan or tracker files. The proposal defines
+intent and alternatives; design records stable implementation units and proof;
+apply builds, simplifies, reviews, validates, and retains only durable learning.
+
+The source-aware installer copies six core-loop skills from
+[EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin):
+`ce-brainstorm`, `ce-plan`, `ce-work`, `ce-simplify-code`, `ce-code-review`,
+and `ce-compound`.
+
+Artifact order:
+
+```text
+proposal -> (specs, design) -> adr -> tasks
+```
+
+Activation:
+
+```yaml
+schema: compound-intent-driven
+```
+
+Validate:
+
+```bash
+openspec schema validate compound-intent-driven
+```
+
+For stage gates and skill mapping, see
+`openspec/schemas/compound-intent-driven/README.md`.
 
 ### Event-Driven
 
