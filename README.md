@@ -27,7 +27,7 @@ For most projects, the built-in `spec-driven` schema is all you need. For comple
 
 How the schemas relate: `intent-driven` is `behaviour-driven` plus a durable ADR artifact — the same OpenSpec Markdown delta specs, adding per-change ADR review and repository-level decision records. It still subsumes `spec-driven-with-adr` (same ADR handling, richer specs, larger companion skill set). Choose `behaviour-driven` when you don't need durable ADRs. `event-driven` is domain-specific for event-centric/AsyncAPI-first systems, and `minimalist` is for small, low-risk changes.
 
-Executable acceptance testing is not a schema feature. `behaviour-driven`, `intent-driven`, and `intent-driven-superpowers` declare the opt-in [`spec-as-source`](https://github.com/intent-driven-dev/skills/tree/main/.agents/skills/spec-as-source) skill, which makes `spec.md` the executable source of truth — fenced-Gherkin authoring, acceptance-first task ordering, and specs/code zone isolation — and pulls in `acceptance-test-authoring` for the runner, extraction, linting, and reports. Install the skill when you want specs run as tests; use either schema alone for the artifact discipline without the test harness.
+Executable acceptance testing is not a schema feature. `behaviour-driven`, `intent-driven`, `intent-driven-engineering`, and `intent-driven-superpowers` declare the opt-in [`spec-as-source`](https://github.com/intent-driven-dev/skills/tree/main/.agents/skills/spec-as-source) skill, which makes `spec.md` the executable source of truth — fenced-Gherkin authoring, acceptance-first task ordering, and specs/code zone isolation — and pulls in `acceptance-test-authoring` for the runner, extraction, linting, and reports. Install the skill when you want specs run as tests; use either schema alone for the artifact discipline without the test harness.
 
 To try these schemas without installing anything, start from a template repo — [intent-driven-template](https://github.com/intent-driven-dev/intent-driven-template) or [behaviour-driven-template](https://github.com/intent-driven-dev/behaviour-driven-template) — each a starter project with the schema, OpenSpec config, commands, and companion skills already installed.
 
@@ -36,13 +36,13 @@ To try these schemas without installing anything, start from a template repo —
 Ask your coding agent to read the install guide and follow the instructions:
 
 ```text
-Read this file: https://raw.githubusercontent.com/intent-driven-dev/openspec-schemas/refs/heads/main/AGENT_INSTALL.md and follow the instructions.
+Read this file: https://raw.githubusercontent.com/Nebuless/openspec-schemas/refs/heads/main/AGENT_INSTALL.md and follow the instructions.
 ```
 
 If you already know which schema you want, include the name and the guide will confirm it exists before proceeding:
 
 ```text
-Read this file: https://raw.githubusercontent.com/intent-driven-dev/openspec-schemas/refs/heads/main/AGENT_INSTALL.md and install schema intent-driven.
+Read this file: https://raw.githubusercontent.com/Nebuless/openspec-schemas/refs/heads/main/AGENT_INSTALL.md and install schema intent-driven.
 ```
 
 Otherwise the guide will enumerate all available schemas and ask you to pick one.

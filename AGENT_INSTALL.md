@@ -1,6 +1,6 @@
 # Agent Install Guide
 
-Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project.
+Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project. The repository currently includes `intent-driven`, `intent-driven-engineering`, `intent-driven-superpowers`, `behaviour-driven`, `spec-driven-with-adr`, `event-driven`, and `minimalist` schemas; the clone is authoritative if that list changes.
 
 ## Prerequisites
 
@@ -61,19 +61,25 @@ Also update the `rules` keys to match the artifact IDs in the schema's `schema.y
 - `intent-driven` uses `proposal`, `specs`, `design`, `adr`, and `tasks` → set those as `rules` keys
 - Check `openspec/schemas/<schema-name>/schema.yaml` (`artifacts[].id`) for the exact IDs of your chosen schema
 
+Some schemas require additional `openspec/config.yaml` keys. Check the chosen
+schema's README before validating. `behaviour-driven`, `intent-driven`,
+`intent-driven-engineering`, and `intent-driven-superpowers` require
+`stack: javascript` or `stack: python` when their opt-in executable spec skills
+are enabled. Other schemas need no additional activation keys.
+
 ## Step 5 — Validate
 
 Run:
 
 ```bash
-openspec schema validate
+openspec schema validate <schema-name>
 ```
 
-Expected success output (example for `intent-driven`):
+Expected success output (example for the selected schema):
 
 ```text
 Validation Results:
-✓ intent-driven
+✓ <schema-name>
 ```
 
 Replace `intent-driven` with the schema name you installed. If validation fails, report the error output to the user.
@@ -98,9 +104,18 @@ cat $HOME/.openspec/schemas/<schema-name>/skills.txt
 
 Run the source-aware installer from this repository clone:
 
+**Option A install:**
+
 ```bash
 bash /tmp/openspec-schemas/scripts/install-schema-skills.sh \
   ./openspec/schemas/<schema-name> .
+```
+
+**Option B install:**
+
+```bash
+bash /tmp/openspec-schemas/scripts/install-schema-skills.sh \
+  $HOME/.openspec/schemas/<schema-name> .
 ```
 
 The installer supports two `skills.txt` forms:
@@ -113,7 +128,7 @@ The installer supports two `skills.txt` forms:
 Bare names remain compatible with existing schemas and resolve from `intent-driven-dev/skills/.agents/skills/<skill-name>`. Source-qualified lines let a schema declare a complete skill directory from another GitHub repository. The separator is one literal tab.
 
 - The installer clones each declared source repository once, validates every declaration before target mutation, then copies complete skill directories into `./.agents/skills/`.
-- If a target skill directory already exists, it stops without changing that directory. Ask the user whether to preserve it or explicitly replace declared skills with `--force`:
+- If a target skill directory already exists, it stops without changing that directory. Ask the user whether to preserve it or explicitly replace only declared directories with `--force`. The installer refuses to replace an existing file at a skill path:
 
   ```bash
   bash /tmp/openspec-schemas/scripts/install-schema-skills.sh \
