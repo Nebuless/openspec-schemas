@@ -33,7 +33,7 @@ function collision(file, force, directory) {
 function main() {
   const [command, ...args] = process.argv.slice(2);
   if (command === '--help' || command === undefined) {
-    console.log('Usage: openspec-schemas list | verify | install <schema> [--target <dir>] [--skills] [--host <opencode|senpi|pi|atomic>] [--activate] [--force]');
+    console.log('Usage: openspec-schemas list | validate [schema] | verify | install <schema> [-t|--target <dir>] [-sk|--skills] [-a|--agents <opencode|senpi|pi|atomic>] [--agent <agent>] [--host <agent>] [-i|--activate] [--force]');
     return;
   }
   if (command === 'list' || command === 'verify') {
@@ -44,35 +44,57 @@ function main() {
     }
     return;
   }
+  if (command === 'validate') {
+    if (args.length > 1) throw new Error('unexpected arguments');
+    const name = args[0];
+    if (name && !names().includes(name)) throw new Error(`unknown schema: ${name}`);
+    for (const schema of name ? [name] : names()) run('openspec', ['schema', 'validate', schema], root);
+    return;
+  }
   if (command !== 'install') throw new Error(`unknown command: ${command}`);
   const name = args.shift();
   if (!names().includes(name)) throw new Error(`unknown schema: ${name}`);
   let target = process.cwd();
   let host;
-  const flags = new Set();
+  let targetSet = false;
+  let skills = false;
+  let activate = false;
+  let force = false;
   while (args.length) {
     const arg = args.shift();
-    if (flags.has(arg)) throw new Error(`duplicate option: ${arg}`);
-    flags.add(arg);
-    if (arg === '--target' || arg === '--host') {
+    if (arg === '--target' || arg === '-t' || arg === '--host' || arg === '--agents' || arg === '--agent' || arg === '-a') {
       const value = args.shift();
-      if (!value || value.startsWith('--')) throw new Error(`missing value: ${arg}`);
-      if (arg === '--target') target = path.resolve(value);
-      else host = value;
-    } else if (!['--skills', '--activate', '--force'].includes(arg)) throw new Error(`unknown option: ${arg}`);
+      if (!value || value.startsWith('-')) throw new Error(`missing value: ${arg}`);
+      if (arg === '--target' || arg === '-t') {
+        if (targetSet) throw new Error('duplicate option: target');
+        target = path.resolve(value);
+        targetSet = true;
+      } else {
+        if (host) throw new Error('duplicate option: agent');
+        host = value;
+      }
+    } else if (arg === '--skills' || arg === '-sk') {
+      if (skills) throw new Error('duplicate option: skills');
+      skills = true;
+    } else if (arg === '--activate' || arg === '-i') {
+      if (activate) throw new Error('duplicate option: activate');
+      activate = true;
+    } else if (arg === '--force') {
+      if (force) throw new Error('duplicate option: force');
+      force = true;
+    } else throw new Error(`unknown option: ${arg}`);
   }
   if (host && (!Object.hasOwn(hosts, host) || name !== 'compound-intent-driven')) throw new Error('--host requires compound-intent-driven and a supported host');
   const source = path.join(schemas, name);
   const destination = path.join(target, 'openspec/schemas', name);
   if (destination === source || source.startsWith(destination + path.sep)) throw new Error('source and destination overlap');
-  const force = flags.has('--force');
   collision(destination, force, true);
   if (host) {
     for (const file of fs.readdirSync(path.join(root, hosts[host])).filter(file => /^opsx-ce-.*\.md$/.test(file))) {
       collision(path.join(target, hosts[host], file), force, false);
     }
   }
-  if (flags.has('--skills')) {
+  if (skills) {
     const manifest = path.join(source, 'skills.txt');
     if (fs.existsSync(manifest)) {
       for (const line of fs.readFileSync(manifest, 'utf8').split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'))) {
@@ -84,7 +106,7 @@ function main() {
   }
   const config = path.join(target, 'openspec/config.yaml');
   let updated;
-  if (flags.has('--activate')) {
+  if (activate) {
     collision(config, true, false);
     const text = fs.readFileSync(config, 'utf8');
     const lines = text.split('\n');
@@ -98,7 +120,7 @@ function main() {
   fs.mkdirSync(path.dirname(destination), { recursive: true });
   fs.cpSync(source, destination, { recursive: true });
   const extra = force ? ['--force'] : [];
-  if (flags.has('--skills')) run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
+  if (skills) run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
   if (host) run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
   run('openspec', ['schema', 'validate', name], target);
   if (updated !== undefined) fs.writeFileSync(config, updated);

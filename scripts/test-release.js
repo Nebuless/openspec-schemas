@@ -14,10 +14,16 @@ function ok(result) { assert.equal(result.status, 0, result.stderr + result.stdo
 try {
   const tools = path.join(tmp, 'tools');
   write(path.join(tools, 'openspec'), '#!/bin/sh\nexit "${VALIDATION_STATUS:-0}"\n');
+  write(path.join(tools, 'git'), '#!/bin/sh\nif [ "$1" = clone ]; then\n  destination=\n  for arg; do destination=$arg; done\n  mkdir -p "$destination/.agents/skills/openspec-git-discipline"\n  exit 0\nfi\nif [ "$1" = -C ] && [ "$3" = rev-parse ]; then\n  printf "%s\\n" 0123456789012345678901234567890123456789\n  exit 0\nfi\nif [ "$1" = ls-files ]; then\n  command -p git "$@"\n  exit $?\nfi\nexit 1\n');
   const env = { ...process.env, PATH: `${tools}:${process.env.PATH}` };
   const cli = (args, overrides = {}) => run(process.execPath, [path.join(root, 'bin/openspec-schemas.js'), ...args], { env: { ...env, ...overrides } });
   ok(cli(['list'], { PATH: tmp }));
+  ok(cli(['validate']));
   ok(cli(['verify']));
+  ok(cli(['validate', 'minimalist']));
+  assert.notEqual(cli(['validate', 'missing']).status, 0);
+  assert.notEqual(cli(['validate', 'minimalist', 'event-driven']).status, 0);
+  assert.notEqual(cli(['verify', 'minimalist']).status, 0);
   const target = path.join(tmp, 'project with spaces');
   const install = ['install', 'minimalist', '--target', target];
   assert.notEqual(cli(install, { PATH: tmp }).status, 0);
@@ -27,6 +33,7 @@ try {
   assert.notEqual(cli([...install, '--activate']).status, 0);
   assert.equal(fs.existsSync(target), false);
   ok(cli(install));
+  assert.notEqual(cli(['install', 'minimalist', '-t']).status, 0);
   assert.notEqual(cli(install).status, 0);
   const config = path.join(target, 'openspec/config.yaml');
   write(config, 'schema: old # keep\r\ncontext: |\r\n  unchanged\r\n');
@@ -36,6 +43,16 @@ try {
   assert.notEqual(cli([...install, '--force', '--activate']).status, 0);
   assert.notEqual(cli(['install', '../minimalist']).status, 0);
   assert.notEqual(cli([...install, '--unknown']).status, 0);
+  const shortTarget = path.join(tmp, 'short target');
+  ok(cli(['install', 'minimalist', '-t', shortTarget]));
+  assert.notEqual(cli(['install', 'minimalist', '-t', '-i']).status, 0);
+  const shortActivation = path.join(tmp, 'short activation');
+  write(path.join(shortActivation, 'openspec/config.yaml'), 'schema: old\n');
+  ok(cli(['install', 'minimalist', '-t', shortActivation, '-i']));
+  assert.equal(fs.readFileSync(path.join(shortActivation, 'openspec/config.yaml'), 'utf8'), 'schema: minimalist\n');
+  const shortSkills = path.join(tmp, 'short skills');
+  ok(cli(['install', 'minimalist', '-t', shortSkills, '-sk']));
+  assert.equal(fs.existsSync(path.join(shortSkills, '.agents/skills')), true);
   const adapterTarget = path.join(tmp, 'adapter project');
   write(path.join(adapterTarget, '.pi/prompts/opsx-ce-plan.md'), 'existing');
   const adapters = ['install', 'compound-intent-driven', '--target', adapterTarget, '--host', 'pi'];
@@ -43,6 +60,19 @@ try {
   assert.equal(fs.existsSync(path.join(adapterTarget, 'openspec')), false);
   ok(cli([...adapters, '--force']));
   assert.match(fs.readFileSync(path.join(adapterTarget, '.pi/prompts/opsx-ce-plan.md'), 'utf8'), /openspec/);
+  const agentTarget = path.join(tmp, 'agent project');
+  ok(cli(['install', 'compound-intent-driven', '-t', agentTarget, '-a', 'pi']));
+  assert.match(fs.readFileSync(path.join(agentTarget, '.pi/prompts/opsx-ce-plan.md'), 'utf8'), /openspec/);
+  const agentsTarget = path.join(tmp, 'agents project');
+  ok(cli(['install', 'compound-intent-driven', '-t', agentsTarget, '--agents', 'atomic']));
+  assert.match(fs.readFileSync(path.join(agentsTarget, '.atomic/prompts/opsx-ce-plan.md'), 'utf8'), /openspec/);
+  const agentAliasTarget = path.join(tmp, 'agent alias project');
+  ok(cli(['install', 'compound-intent-driven', '-t', agentAliasTarget, '--agent', 'opencode']));
+  assert.match(fs.readFileSync(path.join(agentAliasTarget, '.opencode/commands/opsx-ce-plan.md'), 'utf8'), /openspec/);
+  assert.notEqual(cli(['install', 'minimalist', '-a', 'pi']).status, 0);
+  assert.notEqual(cli(['install', 'compound-intent-driven', '-a']).status, 0);
+  assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'invalid']).status, 0);
+  assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'pi', '--host', 'atomic']).status, 0);
   const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']);
   const tracked = run('git', ['ls-files', '-z']);
   ok(tracked);
@@ -64,6 +94,7 @@ try {
   const extracted = path.join(tmp, 'package');
   for (const file of files) { const output = path.join(extracted, file); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.copyFileSync(path.join(root, file), output); }
   ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'install', 'compound-intent-driven', '--host', 'atomic', '--target', path.join(tmp, 'packed-target')], { env }));
+  ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'validate'], { env }));
   const fixture = path.join(tmp, 'quality');
   fs.mkdirSync(path.join(fixture, 'scripts'), { recursive: true });
   for (const file of ['quality.sh', 'install-git-hooks.sh', 'lint-markdown.js', 'update-changelog.js']) fs.copyFileSync(path.join(root, 'scripts', file), path.join(fixture, 'scripts', file));

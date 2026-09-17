@@ -31,10 +31,21 @@ nub install
 nub run test
 nub run check --require-qlty
 nub run changelog:add --type Added --message "describe change"
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas validate <schema-name>
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas verify
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install <schema-name> -t <dir> [-sk] [-a <opencode|senpi|pi|atomic>] [-i] [--force]
 openspec schema validate <schema-name>
 node bin/openspec-schemas.js list
+node bin/openspec-schemas.js validate <schema-name>
 node bin/openspec-schemas.js verify
 ```
+
+Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
+Public usage is Nub-first. `-a|--agents` accepts only `opencode`, `senpi`,
+`pi`, or `atomic` and requires `compound-intent-driven`; `--agent` and `--host`
+remain compatibility aliases. Keep local `node bin/openspec-schemas.js` commands for
+maintainers and shell installers for local or unreleased fallback only.
 
 Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
 

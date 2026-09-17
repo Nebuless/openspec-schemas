@@ -11,7 +11,7 @@ All notable changes will be documented here using
 
 ### Changed
 
-- Manage project tooling with Nub and replace package CLI guidance with `nub dlx`.
+- Manage project tooling with Nub, make `nub dlx` primary package runner, document schema-level `validate`, retain all-schema `verify` compatibility, and expose install option aliases.
 
 ### Fixed
 
