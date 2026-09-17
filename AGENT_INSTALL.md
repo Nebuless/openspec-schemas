@@ -9,16 +9,18 @@ Use this flow when installing any schema from this repository into an existing O
 
 ## Step 1 — Choose a Source
 
-Use the published package for released schemas. `list` needs no OpenSpec CLI;
+Use the published package for released schemas. Nub's explicit remote runner
+fetches and runs its `openspec-schemas` binary. `list` needs no OpenSpec CLI;
 `install` requires the prerequisite OpenSpec CLI from this guide:
 
 ```bash
-npx --yes @nebulesstech/openspec-schemas@beta list
-npx --yes @nebulesstech/openspec-schemas@beta install <schema-name> \
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install <schema-name> \
   --target . --skills --host <opencode|senpi|pi|atomic> --activate
 ```
 
-The package installer validates before mutation, refuses collisions unless
+The package-specific cooling-window exemption permits the selected beta while
+keeping Nub's release-age policy for all other packages. The package installer validates before mutation, refuses collisions unless
 `--force` is explicit, and installs Compound adapters only for
 `compound-intent-driven`. It does not install the host runtime or OpenSpec.
 

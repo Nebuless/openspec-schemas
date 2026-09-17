@@ -57,15 +57,15 @@ openspec schema which <schema-name>
 
 ## Local Quality And Opt-In Hooks
 
-Node >=20, npm, POSIX shell, Git, and OpenSpec are required. No root npm install
-or build is needed. For each change, update relevant documentation and add a
+Node >=20, Nub, POSIX shell, Git, and OpenSpec are required. Run `nub install`
+to provision project dependencies. For each change, update relevant documentation and add a
 matching entry under `CHANGELOG.md`'s Unreleased `Added`, `Changed`, or `Fixed`
 section. For example:
 
 ```sh
-npm run changelog:add -- --type Added --message "Describe change."
-npm test
-npm run check -- --require-qlty
+nub run changelog:add --type Added --message "Describe change."
+nub run test
+nub run check --require-qlty
 ```
 
 Changelog updates are explicit; hooks never infer or generate entries. Keep the
@@ -73,7 +73,7 @@ entry aligned with the conventional commit's scope and description. Commit
 subjects use `type(optional-scope): lower-case description`, with one of
 `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`,
 `style`, or `test`; the description is at most 72 characters. Run individual
-checks with `npm run lint:markdown`, `npm run lint:commit -- --message
+checks with `nub run lint:markdown`, `nub run lint:commit --message
 "docs: explain workflow"`, or `sh scripts/lint-commits.sh main..HEAD`.
 
 The portable gate runs every shell and Node test, Markdown and changelog checks,
@@ -106,11 +106,11 @@ Current registry state: `0.1.6` is `beta`; `0.1.5` is `latest`. For the next bet
 
 1. Confirm ownership/access for `@nebulesstech/openspec-schemas`, review MIT licensing, and choose a new unpublished version.
 2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta`; do not move `latest` implicitly.
-3. Run `npm test`, `npm run check -- --require-qlty`, and `npm pack --dry-run`.
+3. Run `nub run test` and `nub run check --require-qlty`.
 4. Review the allowlisted payload: CLI, two installers, schemas, declared host adapters, docs, license. No local runtime state, credentials, `.omo`, or root lockfile.
 5. In a temporary directory, unpack a local tarball and exercise list, verify, and installation with an already installed OpenSpec CLI.
 6. Publish manually only after review and authorization, explicitly using the `beta` tag and public access. No release credentials belong in this repository or workflow.
-7. After publishing, smoke-test the beta package through an npm-compatible runner and verify its dist-tag. Promotion to `latest` is a separate explicit decision.
+7. Inspect release artifact manually, then smoke-test beta with `nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list` and verify its dist-tag. Promotion to `latest` is a separate explicit decision.
 
 ## Schema PR Checklist
 

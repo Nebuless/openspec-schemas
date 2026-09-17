@@ -11,6 +11,8 @@ All notable changes will be documented here using
 
 ### Changed
 
+- Manage project tooling with Nub and replace package CLI guidance with `nub dlx`.
+
 ### Fixed
 
 ## [0.1.6] - 2026-09-17

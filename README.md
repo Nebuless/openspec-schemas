@@ -37,12 +37,12 @@ To try these schemas without installing anything, start from a template repo —
 ### Package CLI
 
 `@nebulesstech/openspec-schemas` is published. Version `0.1.6` is the current
-`beta`; `0.1.5` remains `latest`. Node >=20 is required; no package dependencies
-or build step are needed. Install from any project with an npm-compatible runner:
+`beta`; `0.1.5` remains `latest`. Node >=20 and Nub are required; no package
+dependencies or build step are needed. Install from any project with Nub:
 
 ```sh
-npx --yes @nebulesstech/openspec-schemas@beta list
-npx --yes @nebulesstech/openspec-schemas@beta install minimalist --target /path/to/project --activate
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install minimalist --target /path/to/project --activate
 ```
 
 From this checkout, use:
@@ -55,6 +55,8 @@ node bin/openspec-schemas.js install minimalist --target /path/to/project --acti
 
 `list` works without OpenSpec. `install` and
 `verify` require an already installed `openspec`; no tools are auto-installed.
+The package-specific cooling-window exemption permits the selected beta while
+keeping Nub's release-age policy for all other packages.
 `verify` validates all bundled schemas. Installation validates before mutation
 and again in the destination. POSIX `sh` is required for optional installers.
 
@@ -67,9 +69,9 @@ are preserved. Missing or ambiguous config is refused. Optional installer or
 post-copy validation failures exit nonzero and may leave installed files;
 activation happens only after success.
 
-Local quality: update relevant docs and `CHANGELOG.md`, run `npm test`, then run
-`npm run check -- --require-qlty`. Add an Unreleased entry explicitly with, for
-example, `npm run changelog:add -- --type Added --message "Describe change."`.
+Local quality: update relevant docs and `CHANGELOG.md`, run `nub run test`, then
+run `nub run check --require-qlty`. Add an Unreleased entry explicitly with, for
+example, `nub run changelog:add --type Added --message "Describe change."`.
 The command does not infer text from commits, and hooks never update the
 changelog. Opt-in hooks:
 `sh scripts/install-git-hooks.sh` (requires Qlty for pre-push). See CONTRIBUTING
