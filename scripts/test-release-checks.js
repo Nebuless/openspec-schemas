@@ -42,6 +42,10 @@ try {
   assert.throws(() => validate(Buffer.from('# Changelog\n\n## [Unreleased]\n\n### Added\n')));
   assert.throws(() => validate(Buffer.from('# Changelog\n\n## [Unreleased]\n\n### Fixed\n\n### Added\n\n### Changed\n')));
 
+  for (const file of ['README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'AGENTS.md', 'scripts/AGENTS.md', 'openspec/schemas/AGENTS.md', '.github/workflows/quality.yml']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8'), /\bnpx\b/);
+  }
+
   const repo = path.join(tmp, 'repo');
   write(path.join(repo, 'good.md'), '# Good\n');
   fs.mkdirSync(path.join(repo, 'scripts'));

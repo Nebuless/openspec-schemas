@@ -43,9 +43,19 @@ try {
   assert.equal(fs.existsSync(path.join(adapterTarget, 'openspec')), false);
   ok(cli([...adapters, '--force']));
   assert.match(fs.readFileSync(path.join(adapterTarget, '.pi/prompts/opsx-ce-plan.md'), 'utf8'), /openspec/);
-  const pack = run('npm', ['pack', '--dry-run', '--json', '--ignore-scripts']);
-  ok(pack);
-  const files = JSON.parse(pack.stdout)[0].files.map(file => file.path);
+  const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']);
+  const tracked = run('git', ['ls-files', '-z']);
+  ok(tracked);
+  for (const file of tracked.stdout.split('\0').filter(Boolean)) {
+    if (
+      file.startsWith('bin/') ||
+      file === 'scripts/install-schema-skills.sh' ||
+      file === 'scripts/install-compound-adapters.sh' ||
+      file.startsWith('openspec/schemas/') ||
+      /^\.(?:opencode\/commands|senpi\/prompts|pi\/prompts|atomic\/prompts)\/opsx-ce-.*\.md$/.test(file)
+    ) packageFiles.add(file);
+  }
+  const files = [...packageFiles];
   assert(files.includes('bin/openspec-schemas.js'));
   assert(files.includes('.pi/prompts/opsx-ce-plan.md'));
   assert(files.includes('CHANGELOG.md'));
