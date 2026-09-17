@@ -37,7 +37,17 @@
     "check": "sh scripts/quality.sh",
     "lint:markdown": "node scripts/lint-markdown.js",
     "lint:commit": "node scripts/lint-commit-msg.js",
-    "changelog:add": "node scripts/update-changelog.js",
-    "pack:check": "npm pack --dry-run"
+    "changelog:add": "node scripts/update-changelog.js"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "nub",
+      "version": "^0.9.2",
+      "onFail": "ignore"
+    }
+  },
+  "packageManager": "nub@0.9.2",
+  "devDependencies": {
+    "@fission-ai/openspec": "^1.13.0"
   }
 }

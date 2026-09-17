@@ -9,5 +9,6 @@ AGENTS.md
 .qlty/out
 .qlty/plugin_cachedir
 .qlty/results
+node_modules/
 .github/copilot-instructions.md
 .github/instructions/
