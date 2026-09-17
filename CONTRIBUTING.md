@@ -102,10 +102,10 @@ the same portable commands; no publishing or cloud upload is configured.
 
 ## Manual Beta Release Checklist
 
-Before first publish (no publication is implied by this repository):
+Current registry state: `0.1.6` is `beta`; `0.1.5` is `latest`. For the next beta:
 
-1. Confirm ownership/access for `@nebulesstech/openspec-schemas` and review MIT licensing.
-2. Keep version `0.1.5` and `publishConfig.tag` set to `beta`; do not promote to `latest` implicitly.
+1. Confirm ownership/access for `@nebulesstech/openspec-schemas`, review MIT licensing, and choose a new unpublished version.
+2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta`; do not move `latest` implicitly.
 3. Run `npm test`, `npm run check -- --require-qlty`, and `npm pack --dry-run`.
 4. Review the allowlisted payload: CLI, two installers, schemas, declared host adapters, docs, license. No local runtime state, credentials, `.omo`, or root lockfile.
 5. In a temporary directory, unpack a local tarball and exercise list, verify, and installation with an already installed OpenSpec CLI.

@@ -34,12 +34,18 @@ To try these schemas without installing anything, start from a template repo —
 
 ## Install a Schema
 
-### Package CLI (Before First Publish)
+### Package CLI
 
-Release metadata prepares `@nebulesstech/openspec-schemas` version `0.1.5` for a
-future public publish under the `beta` dist-tag, not `latest`. This is not a
-claim that the package is already published. Node >=20 is required; no package
-dependencies or build step are needed. From this checkout:
+`@nebulesstech/openspec-schemas` is published. Version `0.1.6` is the current
+`beta`; `0.1.5` remains `latest`. Node >=20 is required; no package dependencies
+or build step are needed. Install from any project with an npm-compatible runner:
+
+```sh
+npx --yes @nebulesstech/openspec-schemas@beta list
+npx --yes @nebulesstech/openspec-schemas@beta install minimalist --target /path/to/project --activate
+```
+
+From this checkout, use:
 
 ```sh
 node bin/openspec-schemas.js list
@@ -47,8 +53,7 @@ node bin/openspec-schemas.js verify
 node bin/openspec-schemas.js install minimalist --target /path/to/project --activate
 ```
 
-After publishing, use `npx @nebulesstech/openspec-schemas@beta list` (or an equivalent
-npm-compatible package runner). `list` works without OpenSpec. `install` and
+`list` works without OpenSpec. `install` and
 `verify` require an already installed `openspec`; no tools are auto-installed.
 `verify` validates all bundled schemas. Installation validates before mutation
 and again in the destination. POSIX `sh` is required for optional installers.

@@ -7,7 +7,22 @@ Use this flow when installing any schema from this repository into an existing O
 1. Run `openspec --version` in the target project. Confirm OpenSpec is installed and the CLI version is at least `1.0.0`.
 2. If `openspec --version` fails, reports a version below `1.0.0`, or `openspec/config.yaml` is missing, stop and tell the user to install or upgrade OpenSpec and run `openspec init` first. Do not continue until these prerequisites are met.
 
-## Step 1 — Clone This Repository
+## Step 1 — Choose a Source
+
+Use the published package for released schemas. `list` needs no OpenSpec CLI;
+`install` requires the prerequisite OpenSpec CLI from this guide:
+
+```bash
+npx --yes @nebulesstech/openspec-schemas@beta list
+npx --yes @nebulesstech/openspec-schemas@beta install <schema-name> \
+  --target . --skills --host <opencode|senpi|pi|atomic> --activate
+```
+
+The package installer validates before mutation, refuses collisions unless
+`--force` is explicit, and installs Compound adapters only for
+`compound-intent-driven`. It does not install the host runtime or OpenSpec.
+
+Use a clone only when installing an unreleased branch, fork, or local checkout:
 
 ```bash
 git clone https://github.com/Nebuless/openspec-schemas.git /tmp/openspec-schemas

@@ -7,6 +7,16 @@ All notable changes will be documented here using
 
 ### Added
 
+- Add project DOX guidance hierarchy.
+
+### Changed
+
+### Fixed
+
+## [0.1.6] - 2026-09-17
+
+### Added
+
 - Add portable conventional commit, Markdown, and changelog validation.
 - Add opt-in Git hooks and CI commit-range checks.
 - Add package CLI for schema installation.
@@ -14,8 +24,9 @@ All notable changes will be documented here using
 
 ### Changed
 
-- Prepare version 0.1.5 for beta publication.
+- Prepare version 0.1.6 for beta publication.
 
 ### Fixed
 
 [Unreleased]: https://github.com/Nebuless/openspec-schemas/commits/HEAD
+[0.1.6]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.6
