@@ -106,3 +106,71 @@ bash /path/to/openspec-schemas/scripts/install-schema-skills.sh \
 The source plugin is MIT licensed. This schema is an independent, compact
 mapping of its documented core loop to OpenSpec artifacts; it does not copy the
 plugin's complete workflow or create a competing lifecycle.
+
+## Planned Host Command Adapters
+
+This schema installs no slash commands. `skills.txt` installs only the six
+skills above. A compatible host agent integration may provide these planned
+OpenSpec-aware adapters:
+
+```text
+/opsx-ce-define [change]
+/opsx-ce-plan [change]
+/opsx-ce-work [change] [task]
+/opsx-ce-debug [change] [task]
+/opsx-ce-review [change]
+/opsx-ce-validate [change]
+/opsx-ce-compound [change]
+```
+
+Each adapter resolves the selected change, reads `openspec status` and the
+relevant `openspec instructions`, reads every concrete dependency or context
+file, performs only its owned stage, reruns status, and hands the next context
+back to OpenSpec. It must not start a second lifecycle or invoke CE-native side
+effects such as separate plan files, todo trackers, commits, branches, pushes,
+issues, or pull requests.
+
+### Artifact-First Handoff Packet
+
+Every invocation builds a packet from OpenSpec before asking Compound
+Engineering to act:
+
+```text
+change
+schemaName
+planningHome
+changeRoot
+actionContext
+artifactId or taskId
+instruction
+resolvedOutputPath
+dependencies or contextFiles
+settled decisions
+allowed mutation paths
+```
+
+Artifact contents and settled decisions are inputs, not prompts to repeat
+discovery. The adapter must not ask planning questions already answered by the
+packet. Questions are allowed only when required input is absent, artifacts
+conflict, a material choice remains unsettled, or safe bounded work cannot
+continue. Answers belong in the OpenSpec artifact that owns the decision.
+
+### Stage Ownership
+
+- `/opsx-ce-define` may update proposal intent within its resolved output path.
+- `/opsx-ce-plan` may update OpenSpec design and task-planning artifacts, never
+  a separate CE plan.
+- `/opsx-ce-work` may change only the selected task's allowed implementation
+  paths and its OpenSpec task status.
+- `/opsx-ce-debug` may diagnose and fix only the selected task or failure scope;
+  design changes return to the owning OpenSpec artifact first.
+- `/opsx-ce-review` reports or fixes verified findings within allowed mutation
+  paths. OpenSpec artifacts remain review criteria.
+- `/opsx-ce-validate` runs named proofs and OpenSpec validation, then reports
+  evidence without creating release or repository side effects.
+- `/opsx-ce-compound` may write only eligible durable learning at the path
+  allowed by the packet.
+
+On handoff, an adapter returns completed work, proof or findings, mutations,
+unresolved questions, and refreshed OpenSpec status. It does not select the
+next stage itself. OpenSpec owns stage readiness, progression, and completion.
