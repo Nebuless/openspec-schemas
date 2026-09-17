@@ -9,12 +9,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install --global @fission-ai/openspec
+      - uses: nubjs/setup-nub@v0
+      - run: nub ci
       - uses: qltysh/qlty-action/install@v2
-      - run: sh scripts/quality.sh --require-qlty
+      - run: nub run check --require-qlty
       - name: Lint commits
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
