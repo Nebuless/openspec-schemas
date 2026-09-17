@@ -1,8 +1,8 @@
 # Scripts Guide
 
-## Scope
+## Purpose
 
-POSIX installers plus Node stdlib linters/tests. Scripts provide portable behavior; GitHub CI and hooks call them rather than duplicating logic.
+POSIX installers plus Node stdlib lint/tests. Scripts are portable source of truth; hooks and CI call them.
 
 ## Ownership
 
@@ -14,7 +14,7 @@ POSIX installers plus Node stdlib linters/tests. Scripts provide portable behavi
 | Quality | `quality.sh` | Runs tests, Markdown/changelog checks, every schema validation, Git whitespace, optional/required Qlty. |
 | Commit/changelog | `lint-*.js`, `update-changelog.js` | No dependencies; changelog edits are explicit. |
 
-## Conventions
+## Local Contracts
 
 - Shell: POSIX `sh`, `set -eu`, quote paths, support spaces, no Bash features.
 - Preflight all files before mutation. Reject unsafe links, overlap, malformed paths, and undeclared collisions.
@@ -22,7 +22,7 @@ POSIX installers plus Node stdlib linters/tests. Scripts provide portable behavi
 - Tests may intentionally print expected installer errors. Assert exit status, safety, and no partial mutation.
 - Keep scripts executable when used as hooks/installers.
 
-## Checks
+## Work Guidance
 
 ```sh
 npm test
@@ -31,8 +31,12 @@ sh -n scripts/*.sh
 node --check scripts/*.js
 ```
 
-## Do Not
+## Verification
 
 - Install tools, publish packages, or access credentials from a quality/test script.
 - Add network dependency to offline adapter/release tests.
 - Weaken collision or validation checks to simplify an install path.
+
+## Child DOX Index
+
+No child DOX files. Scripts are one tightly coupled quality and installer boundary.

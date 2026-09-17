@@ -1,10 +1,14 @@
 # Schema Package Guide
 
-## Scope
+## Purpose
 
-Each child is a user-copyable OpenSpec schema package. `schema.yaml` defines artifact graph; templates and README must describe same contract.
+Each child is a user-copyable schema package. `schema.yaml`, templates, and README describe one contract.
 
-## Required Shape
+## Ownership
+
+Schema directories own workflow artifact graphs, templates, companion skill declarations, and schema-specific documentation.
+
+## Local Contracts
 
 ```text
 <schema>/
@@ -16,7 +20,7 @@ Each child is a user-copyable OpenSpec schema package. `schema.yaml` defines art
 
 `skills.txt` may be empty. Every artifact declared by `schema.yaml` needs its declared template at the matching path.
 
-## Authoring Rules
+## Work Guidance
 
 - Preserve artifact IDs and dependency graph unless changing workflow deliberately.
 - Keep instructions artifact-specific: proposal states intent, specs state observable behavior, design selects implementation guardrails, ADR records durable decisions, tasks carry verifiable vertical work.
@@ -25,7 +29,7 @@ Each child is a user-copyable OpenSpec schema package. `schema.yaml` defines art
 - Keep schema packages standalone. Do not rely on root docs, scripts, or agent state at runtime.
 - Add or revise `skills.txt` only for real companion capabilities; installer accepts bare names and source-qualified tab entries.
 
-## Validation
+## Verification
 
 ```sh
 openspec schema validate <schema-name>
@@ -33,7 +37,16 @@ npm test
 npm run check -- --require-qlty
 ```
 
-## Special Cases
+## Child DOX Index
 
-- `event-driven/` owns event-storming, event-modeling, and AsyncAPI artifacts; keep its README and templates synchronized.
-- `compound-intent-driven/` has canonical adapter guidance below its own subtree. Do not edit host copies independently.
+| Path | Scope |
+|---|---|
+| `behaviour-driven/` | Gherkin-style observable behavior workflow. |
+| `compound-intent-driven/` | Compound Engineering artifact workflow. |
+| `compound-intent-driven/adapters/shared/AGENTS.md` | Canonical adapter guidance and projection parity. |
+| `event-driven/` | Event-storming, event-modeling, AsyncAPI workflow. |
+| `intent-driven/` | Behavior-driven workflow with ADRs. |
+| `intent-driven-engineering/` | Source-aware companion skill workflow. |
+| `intent-driven-superpowers/` | Superpowers companion skill workflow. |
+| `minimalist/` | Small scope specs-to-tasks workflow. |
+| `spec-driven-with-adr/` | Spec-driven workflow with ADR artifact. |
