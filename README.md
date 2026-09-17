@@ -248,6 +248,26 @@ The source-aware installer copies six core-loop skills from
 `ce-brainstorm`, `ce-plan`, `ce-work`, `ce-simplify-code`, `ce-code-review`,
 and `ce-compound`.
 
+`skills.txt` installs only those skills. Planned OpenSpec-aware adapters are a
+host integration feature, not part of this schema package:
+
+```text
+/opsx-ce-define [change]
+/opsx-ce-plan [change]
+/opsx-ce-work [change] [task]
+/opsx-ce-debug [change] [task]
+/opsx-ce-review [change]
+/opsx-ce-validate [change]
+/opsx-ce-compound [change]
+```
+
+After installing the schema and skills, consumers get these commands from a
+compatible host agent integration and confirm them through that host's command
+discovery. The adapters must pass OpenSpec artifacts into bounded Compound
+Engineering stages, then return status and next context to OpenSpec. They must
+not create CE-native plans, trackers, commits, branches, pushes, issues, or
+pull requests. OpenSpec remains lifecycle authority.
+
 Artifact order:
 
 ```text
@@ -266,7 +286,7 @@ Validate:
 openspec schema validate compound-intent-driven
 ```
 
-For stage gates and skill mapping, see
+For stage gates, adapter handoffs, and skill mapping, see
 `openspec/schemas/compound-intent-driven/README.md`.
 
 ### Event-Driven

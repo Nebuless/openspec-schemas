@@ -153,3 +153,30 @@ are rejected.
 `intent-driven-superpowers` combines skills from
 `intent-driven-dev/skills`, `mattpocock/skills`, and `obra/superpowers`. Install
 it with the same command above; no separate plugin installation is required.
+
+## Step 7: Connect Compound Command Adapters
+
+For `compound-intent-driven`, Step 6 installs only these six upstream Compound
+Engineering skills: `ce-brainstorm`, `ce-plan`, `ce-work`,
+`ce-simplify-code`, `ce-code-review`, and `ce-compound`. Its `skills.txt` does
+not install slash commands.
+
+To use the planned OpenSpec-aware command surface, select a compatible host
+agent integration that provides these adapters after schema installation:
+
+```text
+/opsx-ce-define [change]
+/opsx-ce-plan [change]
+/opsx-ce-work [change] [task]
+/opsx-ce-debug [change] [task]
+/opsx-ce-review [change]
+/opsx-ce-validate [change]
+/opsx-ce-compound [change]
+```
+
+Do not claim these commands were installed by this repository. Confirm them
+through the host integration's command discovery mechanism. A compatible host
+must keep OpenSpec in charge of change selection, artifact status,
+instructions, task tracking, validation, and lifecycle transitions. It must
+also suppress Compound Engineering's native side effects, including separate
+plans, trackers, commits, branches, pushes, issues, and pull requests.
