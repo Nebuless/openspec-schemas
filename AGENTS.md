@@ -27,14 +27,24 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 ## Work Guidance
 
 ```sh
+nubx -y @nebulesstech/openspec-schemas@beta list
+nubx -y @nebulesstech/openspec-schemas@beta validate <schema-name>
+nubx -y @nebulesstech/openspec-schemas@beta verify
+nubx -y @nebulesstech/openspec-schemas@beta install <schema-name> -t <dir> [-sk] [-a <opencode|senpi|pi|atomic>] [-i] [--force]
 npm test
 npm run check -- --require-qlty
 npm run changelog:add -- --type Added --message "describe change"
 npm pack --dry-run
 openspec schema validate <schema-name>
 node bin/openspec-schemas.js list
+node bin/openspec-schemas.js validate <schema-name>
 node bin/openspec-schemas.js verify
 ```
+
+Public usage is NubJS-first. `-a|--agents` accepts only `opencode`, `senpi`,
+`pi`, or `atomic` and requires `compound-intent-driven`; `--agent` and `--host`
+remain compatibility aliases. Keep local `node bin/openspec-schemas.js` commands for
+maintainers and shell installers for local or unreleased fallback only.
 
 Package releases are manual. Inspect tarball and run a clean-project smoke test before `npm publish --tag beta`; never store credentials or add automatic publishing.
 

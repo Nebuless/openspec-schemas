@@ -7,28 +7,52 @@ Use this flow when installing any schema from this repository into an existing O
 1. Run `openspec --version` in the target project. Confirm OpenSpec is installed and the CLI version is at least `1.0.0`.
 2. If `openspec --version` fails, reports a version below `1.0.0`, or `openspec/config.yaml` is missing, stop and tell the user to install or upgrade OpenSpec and run `openspec init` first. Do not continue until these prerequisites are met.
 
-## Step 1 — Choose a Source
+## Step 1 — Install from Published Package
 
 Use the published package for released schemas. `list` needs no OpenSpec CLI;
 `install` requires the prerequisite OpenSpec CLI from this guide:
 
 ```bash
-npx --yes @nebulesstech/openspec-schemas@beta list
-npx --yes @nebulesstech/openspec-schemas@beta install <schema-name> \
-  --target . --skills --host <opencode|senpi|pi|atomic> --activate
+nubx -y @nebulesstech/openspec-schemas@beta list
+nubx -y @nebulesstech/openspec-schemas@beta validate <schema-name>
+nubx -y @nebulesstech/openspec-schemas@beta install <schema-name> \
+  -t . -sk -i
 ```
 
 The package installer validates before mutation, refuses collisions unless
-`--force` is explicit, and installs Compound adapters only for
-`compound-intent-driven`. It does not install the host runtime or OpenSpec.
+`--force` is explicit, and does not install OpenSpec, host runtimes, or other
+dependencies. `verify` remains a compatibility command that validates every
+bundled schema; prefer `validate <schema-name>` for one schema.
 
-Use a clone only when installing an unreleased branch, fork, or local checkout:
+```bash
+nubx -y @nebulesstech/openspec-schemas@beta verify
+```
+
+Install Compound adapters by adding `-a <host>`:
+
+```bash
+nubx -y @nebulesstech/openspec-schemas@beta install compound-intent-driven \
+  -t . -sk -a <opencode|senpi|pi|atomic> -i
+```
+
+`-a|--agents` accepts only `opencode`, `senpi`, `pi`, or `atomic` and requires
+`compound-intent-driven`. `--agent` and `--host` are compatibility aliases for
+`--agents`.
+Install syntax is `install <schema> [-t|--target <dir>] [-sk|--skills]
+[-a|--agents <host>] [--agent <host>] [--host <host>] [-i|--activate] [--force]`.
+
+Stop after successful package installation. Use the remaining steps only for
+an unreleased branch, fork, or local checkout.
+
+## Local or Unreleased Fallback
+
+Clone the source:
 
 ```bash
 git clone https://github.com/Nebuless/openspec-schemas.git /tmp/openspec-schemas
 ```
 
-## Step 2 — Select a Schema
+### Step 2 — Select a Schema
 
 **If the user already named a schema**, check that it exists in the clone:
 
@@ -46,7 +70,7 @@ ls /tmp/openspec-schemas/openspec/schemas/
 
 Do not proceed with copy/activation until exactly one schema name is confirmed.
 
-## Step 3 — Copy the Schema
+### Step 3 — Copy the Schema
 
 Copy the chosen schema directory (referred to as `<schema-name>` below) into the target project. Copy the full directory recursively to keep `schema.yaml`, the schema `README.md`, and all nested `templates/` files together. Choose one of these install locations:
 
@@ -63,7 +87,7 @@ cp -R /tmp/openspec-schemas/openspec/schemas/<schema-name> ./openspec/schemas/<s
 cp -R /tmp/openspec-schemas/openspec/schemas/<schema-name> $HOME/.openspec/schemas/<schema-name>
 ```
 
-## Step 4 — Activate the Schema
+### Step 4 — Activate the Schema
 
 Update `openspec/config.yaml` in the target project to activate the installed schema:
 
@@ -82,7 +106,7 @@ schema's README before validating. `behaviour-driven`, `intent-driven`,
 `stack: javascript` or `stack: python` when their opt-in executable spec skills
 are enabled. Other schemas need no additional activation keys.
 
-## Step 5 — Validate
+### Step 5 — Validate
 
 Run:
 
@@ -99,7 +123,7 @@ Validation Results:
 
 Replace `intent-driven` with the schema name you installed. If validation fails, report the error output to the user.
 
-## Step 6 — Install Associated Skills
+### Step 6 — Install Associated Skills
 
 Check whether the installed schema declares associated skills. The manifest lives inside the schema directory you copied in Step 3:
 
@@ -169,15 +193,15 @@ are rejected.
 `intent-driven-dev/skills`, `mattpocock/skills`, and `obra/superpowers`. Install
 it with the same command above; no separate plugin installation is required.
 
-## Step 7: Install Compound Command Adapters
+### Step 7: Install Compound Command Adapters
 
 For `compound-intent-driven`, Step 6 installs only these six upstream Compound
 Engineering skills: `ce-brainstorm`, `ce-plan`, `ce-work`,
 `ce-simplify-code`, `ce-code-review`, and `ce-compound`. Its `skills.txt` does
 not install slash commands.
 
-Seven adapters ship in this repository. After schema and skill installation,
-choose your installed host and run its command from the target project:
+Seven adapters ship in this repository. For this local or unreleased fallback,
+choose your installed host and run its script from the target project:
 
 ```sh
 sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh opencode .

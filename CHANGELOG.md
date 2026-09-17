@@ -11,6 +11,8 @@ All notable changes will be documented here using
 
 ### Changed
 
+- Make NubJS the primary public package runner, document schema-level `validate`, retain all-schema `verify` compatibility, and expose install option aliases.
+
 ### Fixed
 
 ## [0.1.6] - 2026-09-17

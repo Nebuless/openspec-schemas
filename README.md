@@ -37,35 +37,46 @@ To try these schemas without installing anything, start from a template repo —
 ### Package CLI
 
 `@nebulesstech/openspec-schemas` is published. Version `0.1.6` is the current
-`beta`; `0.1.5` remains `latest`. Node >=20 is required; no package dependencies
-or build step are needed. Install from any project with an npm-compatible runner:
+`beta`; `0.1.5` remains `latest`. Node >=20 and NubJS are required; no package
+dependencies or build step are needed. Install from any project with:
 
 ```sh
-npx --yes @nebulesstech/openspec-schemas@beta list
-npx --yes @nebulesstech/openspec-schemas@beta install minimalist --target /path/to/project --activate
+nubx -y @nebulesstech/openspec-schemas@beta list
+nubx -y @nebulesstech/openspec-schemas@beta validate minimalist
+nubx -y @nebulesstech/openspec-schemas@beta install minimalist -t /path/to/project -i
 ```
 
-From this checkout, use:
+`verify` remains a compatibility command that validates every bundled schema:
+
+```sh
+nubx -y @nebulesstech/openspec-schemas@beta verify
+```
+
+Maintainers working from this checkout can use the local CLI:
 
 ```sh
 node bin/openspec-schemas.js list
+node bin/openspec-schemas.js validate minimalist
 node bin/openspec-schemas.js verify
-node bin/openspec-schemas.js install minimalist --target /path/to/project --activate
+node bin/openspec-schemas.js install minimalist -t /path/to/project -i
 ```
 
-`list` works without OpenSpec. `install` and
-`verify` require an already installed `openspec`; no tools are auto-installed.
-`verify` validates all bundled schemas. Installation validates before mutation
-and again in the destination. POSIX `sh` is required for optional installers.
+`list` works without OpenSpec. `validate`, `verify`, and `install` require an
+already installed `openspec`; no tools, runtimes, or dependencies are
+auto-installed. Installation validates before mutation and again in the
+destination. POSIX `sh` is required for optional installers.
 
-`--skills` delegates to the companion installer and can clone remote skill
-repositories. `--host opencode|senpi|pi|atomic` installs bundled adapters only
-for `compound-intent-driven`. Both are opt-in. Collisions fail before copying;
-`--force` replaces declared targets only. `--activate` requires one simple
-existing top-level `schema:` line in `openspec/config.yaml`; all other bytes
-are preserved. Missing or ambiguous config is refused. Optional installer or
-post-copy validation failures exit nonzero and may leave installed files;
-activation happens only after success.
+Install syntax is `install <schema> [-t|--target <dir>] [-sk|--skills]
+[-a|--agents <host>] [--agent <host>] [--host <host>] [-i|--activate] [--force]`.
+`-sk|--skills` delegates to the companion installer and can clone remote skill
+repositories. `-a|--agents` accepts only `opencode`, `senpi`, `pi`, or `atomic`,
+and installs bundled adapters only for `compound-intent-driven`. `--agent` and
+`--host` are compatibility aliases for `--agents`. Both optional installers are opt-in.
+Collisions fail before copying; `--force` replaces declared targets only.
+`-i|--activate` requires one simple existing top-level `schema:` line in
+`openspec/config.yaml`; all other bytes are preserved. Missing or ambiguous
+config is refused. Optional installer or post-copy validation failures exit
+nonzero and may leave installed files; activation happens only after success.
 
 Local quality: update relevant docs and `CHANGELOG.md`, run `npm test`, then run
 `npm run check -- --require-qlty`. Add an Unreleased entry explicitly with, for
@@ -303,14 +314,17 @@ now ship separately for OpenCode, Senpi, Pi, and Atomic:
 /opsx-ce-compound [change]
 ```
 
-After installing the schema and skills, run one command from this clone:
+Install schema, skills, adapters, and activation through the package CLI:
 
 ```sh
-sh scripts/install-compound-adapters.sh opencode /path/to/project
-sh scripts/install-compound-adapters.sh senpi /path/to/project
-sh scripts/install-compound-adapters.sh pi /path/to/project
-sh scripts/install-compound-adapters.sh atomic /path/to/project
+nubx -y @nebulesstech/openspec-schemas@beta install compound-intent-driven \
+  -t /path/to/project -sk -a opencode -i
 ```
+
+Choose `opencode`, `senpi`, `pi`, or `atomic`. `--agents` supports only those
+hosts and requires `compound-intent-driven`; `--agent` and `--host` remain
+compatibility aliases. For a local or unreleased checkout, maintainers can run
+`sh scripts/install-compound-adapters.sh <host> /path/to/project` instead.
 
 OpenCode uses `.opencode/commands`; Senpi uses `.senpi/prompts`; Pi uses
 `.pi/prompts`; Atomic uses `.atomic/prompts`. Target defaults to `.`;
