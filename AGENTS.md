@@ -12,12 +12,12 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 | Installers, lint, test | `scripts/` | Portable core; CI and hooks delegate here. |
 | Schema packages | `openspec/schemas/` | Self-contained publishable directories. |
 | Canonical Compound commands | `openspec/schemas/compound-intent-driven/adapters/shared/` | Host paths are projections. |
-| Normative specs/history | `openspec/specs/`, `openspec/changes/` | Changes excluded from npm payload. |
+| Normative specs/history | `openspec/specs/`, `openspec/changes/` | Changes excluded from published payload. |
 
 ## Local Contracts
 
 - Schema packages contain `schema.yaml`, `README.md`, `skills.txt`, and matching templates.
-- Run `npm test`, `npm run check -- --require-qlty`, and schema validation for changed schemas.
+- Run `nub run test`, `nub run check --require-qlty`, and schema validation for changed schemas.
 - Update relevant docs and an explicit `CHANGELOG.md` Unreleased entry.
 - Commit subject: `type(optional-scope): lower-case description`, max 72 chars.
 - Installer safety is contract: preflight collisions, reject symlinks, and let `--force` replace declared targets only.
@@ -27,20 +27,20 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 ## Work Guidance
 
 ```sh
-npm test
-npm run check -- --require-qlty
-npm run changelog:add -- --type Added --message "describe change"
-npm pack --dry-run
+nub install
+nub run test
+nub run check --require-qlty
+nub run changelog:add --type Added --message "describe change"
 openspec schema validate <schema-name>
 node bin/openspec-schemas.js list
 node bin/openspec-schemas.js verify
 ```
 
-Package releases are manual. Inspect tarball and run a clean-project smoke test before `npm publish --tag beta`; never store credentials or add automatic publishing.
+Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
 
 ## Verification
 
-- `package.json.files` is npm payload boundary.
+- `package.json.files` is published payload boundary.
 - `.github/workflows/quality.yml` is a thin wrapper around portable quality checks.
 - `sh scripts/install-git-hooks.sh` is opt-in; no hook installs itself.
 

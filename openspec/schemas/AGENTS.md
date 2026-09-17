@@ -33,8 +33,8 @@ Schema directories own workflow artifact graphs, templates, companion skill decl
 
 ```sh
 openspec schema validate <schema-name>
-npm test
-npm run check -- --require-qlty
+nub run test
+nub run check --require-qlty
 ```
 
 ## Child DOX Index

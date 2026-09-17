@@ -25,7 +25,7 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 ## Work Guidance
 
 ```sh
-npm test
+nub run test
 sh scripts/quality.sh --require-qlty
 sh -n scripts/*.sh
 node --check scripts/*.js
