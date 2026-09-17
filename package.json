@@ -1,18 +1,37 @@
 {
   "name": "@nebulesstech/openspec-schemas",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Copyable OpenSpec workflow schemas and optional companion adapters",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/Nebuless/openspec-schemas.git" },
-  "engines": { "node": ">=20" },
-  "bin": { "openspec-schemas": "bin/openspec-schemas.js" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nebuless/openspec-schemas.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "openspec-schemas": "bin/openspec-schemas.js"
+  },
   "files": [
-    "bin/", "scripts/install-schema-skills.sh", "scripts/install-compound-adapters.sh",
-    "openspec/schemas/", ".opencode/commands/opsx-ce-*.md", ".senpi/prompts/opsx-ce-*.md",
-    ".pi/prompts/opsx-ce-*.md", ".atomic/prompts/opsx-ce-*.md",
-    "README.md", "AGENT_INSTALL.md", "CONTRIBUTING.md", "CHANGELOG.md", "LICENSE"
+    "bin/",
+    "scripts/install-schema-skills.sh",
+    "scripts/install-compound-adapters.sh",
+    "openspec/schemas/",
+    ".opencode/commands/opsx-ce-*.md",
+    ".senpi/prompts/opsx-ce-*.md",
+    ".pi/prompts/opsx-ce-*.md",
+    ".atomic/prompts/opsx-ce-*.md",
+    "README.md",
+    "AGENT_INSTALL.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
-  "publishConfig": { "access": "public", "tag": "beta" },
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
   "scripts": {
     "test": "sh scripts/test-compound-adapters.sh && sh scripts/test-install-compound-adapters.sh && sh scripts/test-install-schema-skills.sh && node scripts/test-release.js && node scripts/test-release-checks.js",
     "check": "sh scripts/quality.sh",

@@ -5,5 +5,9 @@ CLAUDE.md
 codex.md
 AGENTS.md
 .omo/run*
+.qlty/logs
+.qlty/out
+.qlty/plugin_cachedir
+.qlty/results
 .github/copilot-instructions.md
 .github/instructions/
