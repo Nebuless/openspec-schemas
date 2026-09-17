@@ -1,0 +1,10 @@
+config_version = "0"
+
+exclude_patterns = [".omo/**", ".opencode/node_modules/**", "openspec/changes/archive/**"]
+
+[[source]]
+name = "default"
+default = true
+
+[[plugin]]
+name = "shellcheck"

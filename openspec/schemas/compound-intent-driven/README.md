@@ -107,15 +107,33 @@ The source plugin is MIT licensed. This schema is an independent, compact
 mapping of its documented core loop to OpenSpec artifacts; it does not copy the
 plugin's complete workflow or create a competing lifecycle.
 
-## Planned Host Command Adapters
+## Shipped Host Command Adapters
 
-This schema installs no slash commands. `skills.txt` installs only the six
-skills above. A compatible host agent integration may provide these planned
-OpenSpec-aware adapters:
+`skills.txt` supplies only the six CE skills above, not commands. Seven
+artifact-first adapters ship separately, with canonical host-neutral bodies
+under `adapters/shared/`. OpenCode resources add only description frontmatter;
+Senpi, Pi, and Atomic resources are byte-identical plain templates.
+
+From this repository clone, choose your installed host:
+
+```sh
+sh scripts/install-compound-adapters.sh opencode /path/to/project
+sh scripts/install-compound-adapters.sh senpi /path/to/project
+sh scripts/install-compound-adapters.sh pi /path/to/project
+sh scripts/install-compound-adapters.sh atomic /path/to/project
+```
+
+OpenCode uses `.opencode/commands`; Senpi uses `.senpi/prompts`; Pi uses
+`.pi/prompts`; Atomic uses `.atomic/prompts`. Target
+defaults to `.`. All sources and targets are checked before mutation; collisions
+require explicit `--force`, which replaces only declared regular files and
+rejects directories and symlinks. Unrelated files stay untouched. This offline
+installer installs neither host runtimes nor OpenSpec nor skills. Confirm
+resource discovery in your installed host after installation.
 
 ```text
 /opsx-ce-define [change]
-/opsx-ce-plan [change]
+/opsx-ce-plan [change] <specs|design|adr|tasks>
 /opsx-ce-work [change] [task]
 /opsx-ce-debug [change] [task]
 /opsx-ce-review [change]
@@ -158,8 +176,9 @@ continue. Answers belong in the OpenSpec artifact that owns the decision.
 ### Stage Ownership
 
 - `/opsx-ce-define` may update proposal intent within its resolved output path.
-- `/opsx-ce-plan` may update OpenSpec design and task-planning artifacts, never
-  a separate CE plan.
+- `/opsx-ce-plan` writes one explicitly selected ready artifact: specs, design,
+  adr, or tasks. It never skips prerequisite gates or creates a separate CE
+  plan. Repository-level ADR creation requires separately authorized work.
 - `/opsx-ce-work` may change only the selected task's allowed implementation
   paths and its OpenSpec task status.
 - `/opsx-ce-debug` may diagnose and fix only the selected task or failure scope;
@@ -174,3 +193,17 @@ continue. Answers belong in the OpenSpec artifact that owns the decision.
 On handoff, an adapter returns completed work, proof or findings, mutations,
 unresolved questions, and refreshed OpenSpec status. It does not select the
 next stage itself. OpenSpec owns stage readiness, progression, and completion.
+
+## Offline Adapter Checks
+
+```sh
+sh scripts/test-compound-adapters.sh
+sh scripts/test-install-compound-adapters.sh
+```
+
+Run from the repository clone. Checks cover seven canonical bodies, host
+frontmatter/body parity, stage guardrails, all host mappings, collision
+preflight, force replacement, missing sources, symlink refusal, default target,
+and preservation of unrelated files. These tests make no network calls and
+do not require a host runtime. They validate shipped instructions and installer
+behavior, not an LLM's compliance with instructions.

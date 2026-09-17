@@ -1,0 +1,27 @@
+name: Quality
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --global @fission-ai/openspec
+      - uses: qltysh/qlty-action/install@v2
+      - run: sh scripts/quality.sh --require-qlty
+      - name: Lint commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          case "$BASE_SHA" in
+            ''|0000000000000000000000000000000000000000) COMMIT_RANGE=HEAD ;;
+            *) COMMIT_RANGE="$BASE_SHA..HEAD" ;;
+          esac
+          export COMMIT_RANGE
+          sh scripts/lint-commits.sh

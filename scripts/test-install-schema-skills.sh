@@ -2,7 +2,7 @@
 
 set -eu
 
-ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 INSTALLER=$ROOT/scripts/install-schema-skills.sh
 TMP=$(mktemp -d)
 

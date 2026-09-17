@@ -34,6 +34,43 @@ To try these schemas without installing anything, start from a template repo —
 
 ## Install a Schema
 
+### Package CLI (Before First Publish)
+
+Release metadata prepares `@nebulesstech/openspec-schemas` version `0.1.5` for a
+future public publish under the `beta` dist-tag, not `latest`. This is not a
+claim that the package is already published. Node >=20 is required; no package
+dependencies or build step are needed. From this checkout:
+
+```sh
+node bin/openspec-schemas.js list
+node bin/openspec-schemas.js verify
+node bin/openspec-schemas.js install minimalist --target /path/to/project --activate
+```
+
+After publishing, use `npx @nebulesstech/openspec-schemas@beta list` (or an equivalent
+npm-compatible package runner). `list` works without OpenSpec. `install` and
+`verify` require an already installed `openspec`; no tools are auto-installed.
+`verify` validates all bundled schemas. Installation validates before mutation
+and again in the destination. POSIX `sh` is required for optional installers.
+
+`--skills` delegates to the companion installer and can clone remote skill
+repositories. `--host opencode|senpi|pi|atomic` installs bundled adapters only
+for `compound-intent-driven`. Both are opt-in. Collisions fail before copying;
+`--force` replaces declared targets only. `--activate` requires one simple
+existing top-level `schema:` line in `openspec/config.yaml`; all other bytes
+are preserved. Missing or ambiguous config is refused. Optional installer or
+post-copy validation failures exit nonzero and may leave installed files;
+activation happens only after success.
+
+Local quality: update relevant docs and `CHANGELOG.md`, run `npm test`, then run
+`npm run check -- --require-qlty`. Add an Unreleased entry explicitly with, for
+example, `npm run changelog:add -- --type Added --message "Describe change."`.
+The command does not infer text from commits, and hooks never update the
+changelog. Opt-in hooks:
+`sh scripts/install-git-hooks.sh` (requires Qlty for pre-push). See CONTRIBUTING
+for conventional commit subjects in `type(optional-scope): lower-case
+description` form, strict checks, and the manual beta release checklist.
+
 Ask your coding agent to read the install guide and follow the instructions:
 
 ```text
@@ -248,12 +285,12 @@ The source-aware installer copies six core-loop skills from
 `ce-brainstorm`, `ce-plan`, `ce-work`, `ce-simplify-code`, `ce-code-review`,
 and `ce-compound`.
 
-`skills.txt` installs only those skills. Planned OpenSpec-aware adapters are a
-host integration feature, not part of this schema package:
+`skills.txt` supplies only those six CE skills. Seven OpenSpec-aware adapters
+now ship separately for OpenCode, Senpi, Pi, and Atomic:
 
 ```text
 /opsx-ce-define [change]
-/opsx-ce-plan [change]
+/opsx-ce-plan [change] <specs|design|adr|tasks>
 /opsx-ce-work [change] [task]
 /opsx-ce-debug [change] [task]
 /opsx-ce-review [change]
@@ -261,12 +298,22 @@ host integration feature, not part of this schema package:
 /opsx-ce-compound [change]
 ```
 
-After installing the schema and skills, consumers get these commands from a
-compatible host agent integration and confirm them through that host's command
-discovery. The adapters must pass OpenSpec artifacts into bounded Compound
-Engineering stages, then return status and next context to OpenSpec. They must
-not create CE-native plans, trackers, commits, branches, pushes, issues, or
-pull requests. OpenSpec remains lifecycle authority.
+After installing the schema and skills, run one command from this clone:
+
+```sh
+sh scripts/install-compound-adapters.sh opencode /path/to/project
+sh scripts/install-compound-adapters.sh senpi /path/to/project
+sh scripts/install-compound-adapters.sh pi /path/to/project
+sh scripts/install-compound-adapters.sh atomic /path/to/project
+```
+
+OpenCode uses `.opencode/commands`; Senpi uses `.senpi/prompts`; Pi uses
+`.pi/prompts`; Atomic uses `.atomic/prompts`. Target defaults to `.`;
+collisions stop before mutation unless `--force` explicitly replaces declared
+regular files. Host runtimes and OpenSpec are not installed by this script.
+Confirm discovery in your installed host. Adapters consume settled artifacts,
+return proof and status, and prohibit CE-native plans, trackers, commits,
+branches, pushes, issues, PRs, and automatic stage advancement.
 
 Artifact order:
 

@@ -55,7 +55,64 @@ If you are debugging schema resolution (e.g., you are not sure which schema fold
 openspec schema which <schema-name>
 ```
 
-## PR Checklist
+## Local Quality And Opt-In Hooks
+
+Node >=20, npm, POSIX shell, Git, and OpenSpec are required. No root npm install
+or build is needed. For each change, update relevant documentation and add a
+matching entry under `CHANGELOG.md`'s Unreleased `Added`, `Changed`, or `Fixed`
+section. For example:
+
+```sh
+npm run changelog:add -- --type Added --message "Describe change."
+npm test
+npm run check -- --require-qlty
+```
+
+Changelog updates are explicit; hooks never infer or generate entries. Keep the
+entry aligned with the conventional commit's scope and description. Commit
+subjects use `type(optional-scope): lower-case description`, with one of
+`build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`,
+`style`, or `test`; the description is at most 72 characters. Run individual
+checks with `npm run lint:markdown`, `npm run lint:commit -- --message
+"docs: explain workflow"`, or `sh scripts/lint-commits.sh main..HEAD`.
+
+The portable gate runs every shell and Node test, Markdown and changelog checks,
+all local schema validations, and Git whitespace checks. Installed Qlty runs
+with `qlty check --all`;
+`--require-qlty` fails when absent, while `--skip-qlty` explicitly skips it.
+The script does not install tools. Provision Qlty and its ShellCheck plugin
+before offline use; Qlty may need its own plugin cache on first invocation.
+Schema validation covers YAML semantics; Markdown content has adapter parity
+tests. Qlty adds ShellCheck without broad Markdown style churn.
+
+Hooks are never enabled automatically. With Git and Qlty available, run:
+
+```sh
+sh scripts/install-git-hooks.sh
+```
+
+This sets local `core.hooksPath` to `.githooks`, refuses an existing different
+hook path, and never copies into `.git/hooks`. The commit-message hook checks
+conventional subjects. Pre-commit checks staged Markdown and staged whitespace
+without mutation or network access. Pre-push runs the full strict gate and
+checks commits being pushed; it does not update the changelog, commit, or push
+anything itself. Remove hooks with
+`git config --local --unset core.hooksPath`. CI is a thin GitHub wrapper around
+the same portable commands; no publishing or cloud upload is configured.
+
+## Manual Beta Release Checklist
+
+Before first publish (no publication is implied by this repository):
+
+1. Confirm ownership/access for `@nebulesstech/openspec-schemas` and review MIT licensing.
+2. Keep version `0.1.5` and `publishConfig.tag` set to `beta`; do not promote to `latest` implicitly.
+3. Run `npm test`, `npm run check -- --require-qlty`, and `npm pack --dry-run`.
+4. Review the allowlisted payload: CLI, two installers, schemas, declared host adapters, docs, license. No local runtime state, credentials, `.omo`, or root lockfile.
+5. In a temporary directory, unpack a local tarball and exercise list, verify, and installation with an already installed OpenSpec CLI.
+6. Publish manually only after review and authorization, explicitly using the `beta` tag and public access. No release credentials belong in this repository or workflow.
+7. After publishing, smoke-test the beta package through an npm-compatible runner and verify its dist-tag. Promotion to `latest` is a separate explicit decision.
+
+## Schema PR Checklist
 
 - `openspec schema validate <schema-name>` passes for every schema you changed
 - `templates/` contains templates for every artifact declared in `schema.yaml`

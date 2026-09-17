@@ -139,7 +139,7 @@ check_repo() {
 check_rel_path() {
 	_p=$1
 	case $_p in
-	'' | '.' | '..' | /* | */ | *//* | ./* | */./* | */./ | ../* | */../* | */..) return 1 ;;
+	'' | '.' | '..' | *//* | ./* | */./ | */./* | ../* | */../* | */.. | /* | */) return 1 ;;
 	esac
 	case $_p in
 	*[[:space:]]*) return 1 ;;
@@ -299,7 +299,7 @@ while IFS="$TAB" read -r _cr _crel _cname _csrc; do
 	if [ -e "$SKILLS_DIR/$_cname" ]; then
 		[ "$FORCE" -eq 1 ] || die "internal: collision reappeared after preflight: $SKILLS_DIR/$_cname"
 		[ -d "$SKILLS_DIR/$_cname" ] || die "refusing to replace non-directory target: $SKILLS_DIR/$_cname"
-		rm -rf "$SKILLS_DIR/$_cname" || die "failed to remove existing skill directory: $SKILLS_DIR/$_cname"
+		rm -rf "${SKILLS_DIR:?}/$_cname" || die "failed to remove existing skill directory: $SKILLS_DIR/$_cname"
 	fi
 	cp -R "$_csrc/$_crel" "$SKILLS_DIR/" || die "failed to copy $_cr/$_crel into $SKILLS_DIR"
 	_installed=$_installed$_sep$_cname

@@ -154,19 +154,41 @@ are rejected.
 `intent-driven-dev/skills`, `mattpocock/skills`, and `obra/superpowers`. Install
 it with the same command above; no separate plugin installation is required.
 
-## Step 7: Connect Compound Command Adapters
+## Step 7: Install Compound Command Adapters
 
 For `compound-intent-driven`, Step 6 installs only these six upstream Compound
 Engineering skills: `ce-brainstorm`, `ce-plan`, `ce-work`,
 `ce-simplify-code`, `ce-code-review`, and `ce-compound`. Its `skills.txt` does
 not install slash commands.
 
-To use the planned OpenSpec-aware command surface, select a compatible host
-agent integration that provides these adapters after schema installation:
+Seven adapters ship in this repository. After schema and skill installation,
+choose your installed host and run its command from the target project:
+
+```sh
+sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh opencode .
+sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh senpi .
+sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh pi .
+sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh atomic .
+```
+
+Run only the needed host command. OpenCode uses `.opencode/commands`, Senpi uses
+`.senpi/prompts`, Pi uses `.pi/prompts`, and Atomic uses `.atomic/prompts`.
+Omitted target defaults to `.`. Existing
+adapter files cause refusal before mutation. After explicit replacement approval:
+
+```sh
+sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh senpi . --force
+```
+
+All sources and destinations are preflighted; force replaces only declared
+regular files, never directories, symlinks, or unrelated files. This installer
+is offline and installs no host runtime, OpenSpec CLI, or companion skills.
+
+Installed command/template surface:
 
 ```text
 /opsx-ce-define [change]
-/opsx-ce-plan [change]
+/opsx-ce-plan [change] <specs|design|adr|tasks>
 /opsx-ce-work [change] [task]
 /opsx-ce-debug [change] [task]
 /opsx-ce-review [change]
@@ -174,9 +196,9 @@ agent integration that provides these adapters after schema installation:
 /opsx-ce-compound [change]
 ```
 
-Do not claim these commands were installed by this repository. Confirm them
-through the host integration's command discovery mechanism. A compatible host
-must keep OpenSpec in charge of change selection, artifact status,
-instructions, task tracking, validation, and lifecycle transitions. It must
-also suppress Compound Engineering's native side effects, including separate
-plans, trackers, commits, branches, pushes, issues, and pull requests.
+Confirm installed resources through your host's command/template discovery.
+OpenSpec remains in charge of artifact status, instructions, task tracking,
+validation, and lifecycle transitions. Adapters prohibit separate CE plans,
+trackers, commits, branches, pushes, issues, PRs, and automatic stage selection
+or advancement. Planning requires a selected ready artifact, work a selected
+task; settled artifact scope is reused rather than asked again.

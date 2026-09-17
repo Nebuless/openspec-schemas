@@ -1,0 +1,86 @@
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const root = path.resolve(__dirname, '..');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'schemas-release-'));
+function write(file, text) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text, { mode: 0o755 }); }
+function run(command, args, options = {}) {
+  return spawnSync(command, args, { cwd: root, encoding: 'utf8', ...options });
+}
+function ok(result) { assert.equal(result.status, 0, result.stderr + result.stdout); }
+try {
+  const tools = path.join(tmp, 'tools');
+  write(path.join(tools, 'openspec'), '#!/bin/sh\nexit "${VALIDATION_STATUS:-0}"\n');
+  const env = { ...process.env, PATH: `${tools}:${process.env.PATH}` };
+  const cli = (args, overrides = {}) => run(process.execPath, [path.join(root, 'bin/openspec-schemas.js'), ...args], { env: { ...env, ...overrides } });
+  ok(cli(['list'], { PATH: tmp }));
+  ok(cli(['verify']));
+  const target = path.join(tmp, 'project with spaces');
+  const install = ['install', 'minimalist', '--target', target];
+  assert.notEqual(cli(install, { PATH: tmp }).status, 0);
+  assert.equal(fs.existsSync(target), false);
+  assert.notEqual(cli(install, { VALIDATION_STATUS: '1' }).status, 0);
+  assert.equal(fs.existsSync(target), false);
+  assert.notEqual(cli([...install, '--activate']).status, 0);
+  assert.equal(fs.existsSync(target), false);
+  ok(cli(install));
+  assert.notEqual(cli(install).status, 0);
+  const config = path.join(target, 'openspec/config.yaml');
+  write(config, 'schema: old # keep\r\ncontext: |\r\n  unchanged\r\n');
+  ok(cli([...install, '--force', '--activate']));
+  assert.equal(fs.readFileSync(config, 'utf8'), 'schema: minimalist # keep\r\ncontext: |\r\n  unchanged\r\n');
+  write(config, 'schema: old\nschema: duplicate\n');
+  assert.notEqual(cli([...install, '--force', '--activate']).status, 0);
+  assert.notEqual(cli(['install', '../minimalist']).status, 0);
+  assert.notEqual(cli([...install, '--unknown']).status, 0);
+  const adapterTarget = path.join(tmp, 'adapter project');
+  write(path.join(adapterTarget, '.pi/prompts/opsx-ce-plan.md'), 'existing');
+  const adapters = ['install', 'compound-intent-driven', '--target', adapterTarget, '--host', 'pi'];
+  assert.notEqual(cli(adapters).status, 0);
+  assert.equal(fs.existsSync(path.join(adapterTarget, 'openspec')), false);
+  ok(cli([...adapters, '--force']));
+  assert.match(fs.readFileSync(path.join(adapterTarget, '.pi/prompts/opsx-ce-plan.md'), 'utf8'), /openspec/);
+  const pack = run('npm', ['pack', '--dry-run', '--json', '--ignore-scripts']);
+  ok(pack);
+  const files = JSON.parse(pack.stdout)[0].files.map(file => file.path);
+  assert(files.includes('bin/openspec-schemas.js'));
+  assert(files.includes('.pi/prompts/opsx-ce-plan.md'));
+  assert(files.includes('CHANGELOG.md'));
+  assert(!files.some(file => /^scripts\/(lint-|test-|quality)/.test(file)));
+  assert(!files.some(file => /(^\.omo\/|node_modules|package-lock|^openspec\/changes\/|^\.opencode\/package.json)/.test(file)));
+  const extracted = path.join(tmp, 'package');
+  for (const file of files) { const output = path.join(extracted, file); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.copyFileSync(path.join(root, file), output); }
+  ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'install', 'compound-intent-driven', '--host', 'atomic', '--target', path.join(tmp, 'packed-target')], { env }));
+  const fixture = path.join(tmp, 'quality');
+  fs.mkdirSync(path.join(fixture, 'scripts'), { recursive: true });
+  for (const file of ['quality.sh', 'install-git-hooks.sh', 'lint-markdown.js', 'update-changelog.js']) fs.copyFileSync(path.join(root, 'scripts', file), path.join(fixture, 'scripts', file));
+  write(path.join(fixture, 'scripts/test-ok.sh'), '#!/bin/sh\nexit "${TEST_STATUS:-0}"\n');
+  write(path.join(fixture, 'scripts/test-release.js'), '');
+  write(path.join(fixture, 'scripts/test-release-checks.js'), '');
+  write(path.join(fixture, 'CHANGELOG.md'), '# Changelog\n\n## [Unreleased]\n\n### Added\n\n### Changed\n\n### Fixed\n');
+  write(path.join(fixture, 'openspec/schemas/example/schema.yaml'), '');
+  write(path.join(tools, 'git'), '#!/bin/sh\nif [ "$1" = config ] && [ "$2" = --get ]; then printf "%s" "${HOOKS_PATH:-}"; fi\nexit 0\n');
+  write(path.join(tools, 'qlty'), '#!/bin/sh\nexit "${QLTY_STATUS:-0}"\n');
+  const quality = (args, overrides = {}) => run('/bin/sh', [path.join(fixture, 'scripts/quality.sh'), ...args], { env: { ...env, ...overrides } });
+  ok(quality(['--require-qlty']));
+  assert.notEqual(quality(['--bad']).status, 0);
+  assert.notEqual(quality([], { TEST_STATUS: '1' }).status, 0);
+  assert.notEqual(quality([], { QLTY_STATUS: '1' }).status, 0);
+  ok(quality(['--skip-qlty'], { QLTY_STATUS: '1' }));
+  ok(run('sh', [path.join(fixture, 'scripts/install-git-hooks.sh')], { env }));
+  assert.notEqual(run('sh', [path.join(fixture, 'scripts/install-git-hooks.sh')], { env: { ...env, HOOKS_PATH: 'custom-hooks' } }).status, 0);
+  fs.unlinkSync(path.join(tools, 'qlty'));
+  fs.symlinkSync('/usr/bin/dirname', path.join(tools, 'dirname'));
+  const missingQlty = quality(['--require-qlty'], { PATH: tools });
+  assert.notEqual(missingQlty.status, 0);
+  assert.match(missingQlty.stderr, /qlty required/);
+  const missingHookTool = run('/bin/sh', [path.join(fixture, 'scripts/install-git-hooks.sh')], { env: { ...env, PATH: tools } });
+  assert.notEqual(missingHookTool.status, 0);
+  assert.match(missingHookTool.stderr, /qlty required/);
+  fs.unlinkSync(path.join(tools, 'openspec'));
+  assert.match(quality([], { PATH: tools }).stderr, /openspec required/);
+  console.log('test-release: CLI, package file set, quality, hooks passed');
+} finally { fs.rmSync(tmp, { recursive: true, force: true }); }
