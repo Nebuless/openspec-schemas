@@ -1,6 +1,6 @@
 {
   "name": "@nebulesstech/openspec-schemas",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Copyable OpenSpec workflow schemas and optional companion adapters",
   "license": "MIT",
   "repository": {
@@ -33,7 +33,7 @@
     "tag": "beta"
   },
   "scripts": {
-    "test": "sh scripts/test-compound-adapters.sh && sh scripts/test-install-compound-adapters.sh && sh scripts/test-install-schema-skills.sh && node scripts/test-release.js && node scripts/test-release-checks.js",
+    "test": "node scripts/test-artifact-layout.js && sh scripts/test-compound-adapters.sh && sh scripts/test-install-compound-adapters.sh && sh scripts/test-install-schema-skills.sh && node scripts/test-release.js && node scripts/test-release-checks.js",
     "check": "sh scripts/quality.sh",
     "lint:markdown": "node scripts/lint-markdown.js",
     "lint:commit": "node scripts/lint-commit-msg.js",

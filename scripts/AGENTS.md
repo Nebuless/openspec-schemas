@@ -11,6 +11,7 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 | Schema skills | `install-schema-skills.sh` | Manifest preflight before clone/copy; source-qualified entries use literal tabs. |
 | Compound adapters | `install-compound-adapters.sh` | Exactly seven declared adapter files per supported host. |
 | Package CLI tests | `test-release.js` | Protect CLI collision, activation, package allowlist, and hook behavior. |
+| Artifact layout | `test-artifact-layout.js` | Protect CLI-authoritative paths, concrete non-empty specs, all host guidance, and adapter projection parity. |
 | Quality | `quality.sh` | Runs tests, Markdown/changelog checks, every schema validation, Git whitespace, optional/required Qlty. |
 | Commit/changelog | `lint-*.js`, `update-changelog.js` | No dependencies; changelog edits are explicit. |
 
