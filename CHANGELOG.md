@@ -12,6 +12,7 @@ All notable changes will be documented here using
 ### Changed
 
 - Manage project tooling with Nub, make `nub dlx` primary package runner, document schema-level `validate`, retain all-schema `verify` compatibility, and expose install option aliases.
+- Restructure root documentation around a concise user entrypoint with linked agent, contributor, and schema-specific guides.
 
 ### Fixed
 

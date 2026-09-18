@@ -55,6 +55,23 @@ If you are debugging schema resolution (e.g., you are not sure which schema fold
 openspec schema which <schema-name>
 ```
 
+## Maintainer CLI
+
+Use the local CLI when testing changes from this checkout:
+
+```sh
+node bin/openspec-schemas.js list
+node bin/openspec-schemas.js validate <schema-name>
+node bin/openspec-schemas.js verify
+node bin/openspec-schemas.js install <schema-name> -t /path/to/project -i
+```
+
+`list` works without OpenSpec. `validate`, `verify`, and `install` require an
+installed OpenSpec CLI. Use `validate <schema-name>` for one changed schema;
+`verify` remains the compatibility check for every packaged schema. Published
+usage is Nub-first. See [`AGENT_INSTALL.md`](./AGENT_INSTALL.md) for package
+installation, optional skills and adapters, and local fallback details.
+
 ## Local Quality And Opt-In Hooks
 
 Node >=20, Nub, POSIX shell, Git, and OpenSpec are required. Run `nub install`

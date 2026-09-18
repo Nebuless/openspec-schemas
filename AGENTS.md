@@ -24,6 +24,18 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 - `.omo/` and generated `.qlty` state are local. Never edit, package, lint, or commit them.
 - No CE-native plan/tracker or automatic commits, branches, pushes, issues, PRs, or OpenSpec stage advancement.
 
+## Documentation Map
+
+| Document | Audience | Owner |
+|---|---|---|
+| [`README.md`](./README.md) | Users choosing and installing a published schema | Root public docs |
+| [`AGENT_INSTALL.md`](./AGENT_INSTALL.md) | Coding agents performing complete package, skill, adapter, or fallback installation | Root install docs |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors and maintainers running local quality, CLI, and release operations | Root contributor docs |
+| [`openspec/schemas/*/README.md`](./openspec/schemas/) | Users and agents needing schema-specific fit, activation, artifacts, and skills | Each schema package |
+| [`openspec/specs/agent-install-guide/spec.md`](./openspec/specs/agent-install-guide/spec.md) | Changes to agent installation guidance | Normative install contract |
+| [`openspec/specs/custom-schema-packaging/spec.md`](./openspec/specs/custom-schema-packaging/spec.md) | Changes to root catalog or schema packaging docs | Normative packaging contract |
+| [`.agents/skills/writing-for-agents/SKILL.md`](./.agents/skills/writing-for-agents/SKILL.md) | Agent-facing pointers, `AGENTS.md`, or skill docs | Writing guidance |
+
 ## Work Guidance
 
 ```sh
@@ -46,8 +58,6 @@ Public usage is Nub-first. `-a|--agents` accepts only `opencode`, `senpi`,
 `pi`, or `atomic` and requires `compound-intent-driven`; `--agent` and `--host`
 remain compatibility aliases. Keep local `node bin/openspec-schemas.js` commands for
 maintainers and shell installers for local or unreleased fallback only.
-
-Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
 
 ## Verification
 
@@ -142,5 +152,6 @@ When the user requests a durable behavior change, record it here or in the relev
 | Path | Scope |
 |---|---|
 | `scripts/AGENTS.md` | Installer safety, portable quality, linting, and tests. |
+| `.agents/skills/writing-for-agents/` | Installed guidance for concise agent-facing documents. |
 | `openspec/schemas/AGENTS.md` | Self-contained schema authoring and validation. |
 | `openspec/schemas/compound-intent-driven/adapters/shared/AGENTS.md` | Canonical `/opsx-ce-*` adapter contracts and projection parity. |
