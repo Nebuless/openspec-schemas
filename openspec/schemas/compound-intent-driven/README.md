@@ -12,10 +12,10 @@ It maps that loop onto OpenSpec artifacts instead of creating parallel plan or
 tracker files:
 
 - `proposal` defines intent, alternatives, scope, success signals, and prior
-  learning (`ce-brainstorm`).
+  learning (`ce-brainstorm`), then define completes concrete capability specs.
 - `specs` makes each approved capability observable and testable.
-- `design` records execution guardrails, stable implementation units, seams,
-  risks, and targeted proofs (`ce-plan`).
+- `design` records execution guardrails, stable implementation units, batches,
+  layers, path claims, proofs, and continuation conditions (`ce-plan`).
 - `adr` keeps only durable architecture decisions.
 - `tasks` converts units into vertical, dependency-ordered, tracked slices.
 - `apply` implements, simplifies settled code, reviews final diff, validates,
@@ -56,10 +56,14 @@ The loop is intentionally compact:
    It uses repository evidence and relevant `docs/solutions/` learnings first;
    user questions remain only for material decisions evidence cannot settle.
 2. **Plan:** `design.md` turns approved intent into implementation guardrails.
-   Stable `U1`, `U2`, … units own seams, likely integration points, and targeted
-   proof. They never renumber.
-3. **Build:** apply implements a vertical task in dependency order, follows the
-   repository's patterns, and runs its named proof before checking its box.
+   Stable `U1`, `U2`, … units own batch, layer, path claim, proof, and
+   continuation fields. They never renumber. `tasks.md` carries those fields in
+   prose below parser-safe checkboxes.
+3. **Build:** an outer loop selects one ready task and may assign one bounded
+   worker. A pre-created worktree is optional after dependency, path-isolation,
+   repository-instruction, and ownership checks. Workers run named proof before
+   checking a box. Unsafe or oversized work returns continuation evidence for
+   the same task instead of claiming completion.
 4. **Simplify:** each settled code unit gets a scope-bounded reuse, clarity, and
    efficiency pass. Mechanical and docs-only changes skip it.
 5. **Review:** final diff is checked against the change artifacts, in-force ADR
@@ -155,6 +159,11 @@ back to OpenSpec. It must not start a second lifecycle or invoke CE-native side
 effects such as separate plan files, todo trackers, commits, branches, pushes,
 issues, or pull requests.
 
+Worktrees, when used, are pre-created and owned by an outer controller after
+isolation checks. Adapters and bounded workers don't create or manage them.
+Worktree use never permits automatic branches, commits, pushes, pull requests,
+archival, or lifecycle advancement.
+
 ### Artifact-First Handoff Packet
 
 Every invocation builds a packet from OpenSpec before asking Compound
@@ -197,9 +206,10 @@ continue. Answers belong in the OpenSpec artifact that owns the decision.
 - `/opsx-ce-compound` may write only eligible durable learning at the path
   allowed by the packet.
 
-On handoff, an adapter returns completed work, proof or findings, mutations,
-unresolved questions, and refreshed OpenSpec status. It does not select the
-next stage itself. OpenSpec owns stage readiness, progression, and completion.
+On every handoff, an adapter returns completed work, proof or findings,
+mutations, continuation or unresolved questions, refreshed OpenSpec status, and
+the exact next OpenSpec command. It does not select the next stage itself.
+OpenSpec owns artifact state, stage readiness, progression, and completion.
 
 ## Offline Adapter Checks
 
