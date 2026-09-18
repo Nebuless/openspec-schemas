@@ -23,6 +23,7 @@ Schema directories own workflow artifact graphs, templates, companion skill decl
 ## Work Guidance
 
 - Preserve artifact IDs and dependency graph unless changing workflow deliberately.
+- Resolve artifact outputs and dependencies from CLI metadata, relative to `changeRoot`; `specs/**/*.md` requires non-empty `<changeRoot>/specs/<capability>/spec.md`, never empty directories or literal glob paths. Keep schema instructions and standalone docs aligned.
 - Keep instructions artifact-specific: proposal states intent, specs state observable behavior, design selects implementation guardrails, ADR records durable decisions, tasks carry verifiable vertical work.
 - Specs use OpenSpec Markdown deltas. Requirements use `SHALL` or `MUST`; scenarios use exact `#### Scenario:` heading and GIVEN/WHEN/THEN.
 - For a modified requirement, copy complete prior requirement block before editing.

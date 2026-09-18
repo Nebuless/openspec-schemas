@@ -50,6 +50,13 @@ artifacts:
     template: spec.md
     instruction: >
       Create specification files that define WHAT the system should do.
+      Use CLI changeRoot, artifactPaths, resolvedOutputPath, and dependency paths
+      from status/instructions as authority. All generates paths are relative
+      to changeRoot, not the working directory. specs/**/*.md is a glob:
+      write non-empty <changeRoot>/specs/<capability>/spec.md for each capability.
+      Never write a literal glob path or count an empty directory as completion.
+      Read concrete dependency files; verify existingOutputPaths and refreshed
+      status after writing. Missing metadata or conflicting paths are blockers.
 
 
       Create one spec file per capability listed in the proposal's Capabilities
@@ -209,7 +216,7 @@ artifacts:
     template: adr.md
     instruction: >
       Complete ADR review for this change by writing
-      openspec/changes/<change>/adr.md. This change-local file is a concise
+      <changeRoot>/adr.md, using CLI resolvedOutputPath. This change-local file is a concise
       review manifest and the OpenSpec completion marker for the adr artifact.
       Existing files under <repo>/adr/ are decision history and context; they
       do not complete ADR review for a new change.
@@ -221,7 +228,7 @@ artifacts:
       inside openspec/. If this change introduces a new durable architectural
       decision, create a repository-level ADR at
       <repo>/adr/NNNN-kebab-title.md and reference it from
-      openspec/changes/<change>/adr.md. Do not duplicate the full ADR content
+      <changeRoot>/adr.md. Do not duplicate the full ADR content
       in the manifest.
 
 
@@ -263,11 +270,11 @@ artifacts:
       "accepted, supersedes ADR-NNNN", populate the `Supersedes:` field, and
       explain in Context why the prior decision is being revisited. Do NOT
       touch the prior ADR's file — leave it exactly as it was. Reference every
-      new repository-level ADR file from openspec/changes/<change>/adr.md.
+      new repository-level ADR file from <changeRoot>/adr.md.
 
 
       4. If nothing meets the bar, do not invent ADRs. The step still completes
-      by writing openspec/changes/<change>/adr.md with:
+      by writing <changeRoot>/adr.md at CLI resolvedOutputPath with:
       - ADR review completed for this change.
       - The in-force ADR context reviewed, or "none" if no existing ADRs exist.
       - A statement that no major durable architectural decisions were

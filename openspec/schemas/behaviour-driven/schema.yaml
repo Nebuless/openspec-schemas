@@ -42,6 +42,13 @@ artifacts:
     template: spec.md
     instruction: >
       Create specification files that define WHAT the system should do.
+      Use CLI changeRoot, artifactPaths, resolvedOutputPath, and dependency paths
+      from status/instructions as authority. All generates paths are relative
+      to changeRoot, not the working directory. specs/**/*.md is a glob:
+      write non-empty <changeRoot>/specs/<capability>/spec.md for each capability.
+      Never write a literal glob path or count an empty directory as completion.
+      Read concrete dependency files; verify existingOutputPaths and refreshed
+      status after writing. Missing metadata or conflicting paths are blockers.
 
 
       Create one spec file per capability listed in the proposal's Capabilities

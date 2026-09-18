@@ -19,6 +19,16 @@ Use the root `README.md` single-line install command with:
 
 ## Activate
 
+Artifact paths come from CLI `status`/`instructions`: use `changeRoot`,
+`artifactPaths`, `resolvedOutputPath`, and concrete dependency paths. `generates`
+is relative to `changeRoot`. For `specs/**/*.md`, write non-empty
+`<changeRoot>/specs/<capability>/spec.md` files, never a literal glob or empty
+directory. Verify file contents and refreshed `existingOutputPaths` and status.
+Missing metadata blocks work; never guess a repository-local change root.
+Choose kebab-case capabilities from approved event-modeling scope.
+`template: specs/spec.md` identifies the schema template, not an output path.
+Run AsyncAPI validation against its CLI-resolved output, not a guessed cwd file.
+
 Set this in `openspec/config.yaml`:
 
 ```yaml

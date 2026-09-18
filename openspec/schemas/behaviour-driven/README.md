@@ -18,6 +18,13 @@ Gherkin style with `GIVEN`, `WHEN`, and `THEN` steps.
 
 ## Activate
 
+Artifact paths come from CLI `status`/`instructions`: use `changeRoot`,
+`artifactPaths`, `resolvedOutputPath`, and concrete dependency paths. `generates`
+is relative to `changeRoot`. For `specs/**/*.md`, write non-empty
+`<changeRoot>/specs/<capability>/spec.md` files, never a literal glob or empty
+directory. Verify file contents and refreshed `existingOutputPaths` and status.
+Missing metadata blocks work; never guess a repository-local change root.
+
 Set this in `openspec/config.yaml`:
 
 ```yaml

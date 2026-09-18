@@ -46,6 +46,13 @@ artifacts:
     template: spec.md
     instruction: >
       Create specification files that define WHAT the system should do.
+      Use CLI changeRoot, artifactPaths, resolvedOutputPath, and dependency paths
+      from status/instructions as authority. All generates paths are relative
+      to changeRoot, not the working directory. specs/**/*.md is a glob:
+      write non-empty <changeRoot>/specs/<capability>/spec.md for each capability.
+      Never write a literal glob path or count an empty directory as completion.
+      Read concrete dependency files; verify existingOutputPaths and refreshed
+      status after writing. Missing metadata or conflicting paths are blockers.
 
 
       Create one spec file per capability listed in the proposal's Capabilities
@@ -204,7 +211,7 @@ artifacts:
     template: adr.md
     instruction: >
       Complete ADR review for this change by writing a concise manifest at
-      openspec/changes/<change>/adr.md. This change-local file is the artifact
+      <changeRoot>/adr.md, using CLI resolvedOutputPath. This change-local file is the artifact
       completion marker for the adr step. Existing files under <repo>/adr/ are
       required context for the review, but they MUST NOT satisfy completion for
       a new change.
@@ -252,7 +259,7 @@ artifacts:
       explain in Context why the prior decision is being revisited. Do NOT
       touch the prior ADR's file.
 
-      4. Write openspec/changes/<change>/adr.md using the template. The
+      4. Write <changeRoot>/adr.md at CLI resolvedOutputPath using the template. The
       manifest MUST state that ADR review completed for this change, list the
       in-force ADR context reviewed, and reference every repository-level ADR
       file created for this change. It MUST NOT duplicate full Context,

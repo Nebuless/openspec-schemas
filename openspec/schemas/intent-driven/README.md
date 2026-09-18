@@ -18,6 +18,13 @@ Gherkin style with `GIVEN`, `WHEN`, and `THEN` steps.
 
 ## Activate
 
+Artifact paths come from CLI `status`/`instructions`: use `changeRoot`,
+`artifactPaths`, `resolvedOutputPath`, and concrete dependency paths. `generates`
+is relative to `changeRoot`. For `specs/**/*.md`, write non-empty
+`<changeRoot>/specs/<capability>/spec.md` files, never a literal glob or empty
+directory. Verify file contents and refreshed `existingOutputPaths` and status.
+Missing metadata blocks work; never guess a repository-local change root.
+
 Set this in `openspec/config.yaml`:
 
 ```yaml
@@ -46,7 +53,7 @@ Gate expectations:
 - `design` explains the implementation approach and accounts for currently
   in-force ADRs.
 - `adr` writes the per-change ADR review manifest at
-  `openspec/changes/<change>/adr.md` after design and before task planning.
+  `<changeRoot>/adr.md` at CLI `resolvedOutputPath` after design and before task planning.
   Durable repository-level ADR files are created only when the change
   introduces a major architectural decision that should persist beyond the
   change.
@@ -97,7 +104,7 @@ alone when you want the artifact discipline without the test harness.
 ## ADR Persistence
 
 The `adr` artifact completion signal is the change-local review manifest at
-`openspec/changes/<change>/adr.md`. Existing files under the repository-level
+`<changeRoot>/adr.md` at CLI `resolvedOutputPath`. Existing files under the repository-level
 `adr/` folder are context for a new change; they are not completion evidence
 for that change.
 

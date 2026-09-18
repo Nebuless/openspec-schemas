@@ -21,6 +21,13 @@ Use the root `README.md` single-line install command with:
 
 ## Activate
 
+Artifact paths come from CLI `status`/`instructions`: use `changeRoot`,
+`artifactPaths`, `resolvedOutputPath`, and concrete dependency paths. `generates`
+is relative to `changeRoot`. For `specs/**/*.md`, write non-empty
+`<changeRoot>/specs/<capability>/spec.md` files, never a literal glob or empty
+directory. Verify file contents and refreshed `existingOutputPaths` and status.
+Missing metadata blocks work; never guess a repository-local change root.
+
 Set this in `openspec/config.yaml`:
 
 ```yaml
@@ -35,14 +42,14 @@ Artifact order:
 Gate expectations:
 - `specs` must be based on the capabilities identified in `proposal.md`.
 - `design` must account for the proposal, specs, and currently in-force ADRs.
-- `adr` completes by writing `openspec/changes/<change>/adr.md`, a concise
+- `adr` completes by writing `<changeRoot>/adr.md` at CLI `resolvedOutputPath`, a concise
   ADR review manifest created after design and before task planning.
 - `tasks` are planned only after proposal, specs, design, and ADR artifacts are
   complete.
 
 ## ADR Persistence
 
-`openspec/changes/<change>/adr.md` is the per-change ADR review artifact used
+`<changeRoot>/adr.md` at CLI `resolvedOutputPath` is the per-change ADR review artifact used
 for OpenSpec artifact completion. It records that ADR review happened, lists
 the in-force ADR context that was reviewed, and references any durable ADR files
 created for the change.

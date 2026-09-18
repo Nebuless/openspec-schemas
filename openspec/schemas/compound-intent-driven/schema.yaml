@@ -37,6 +37,14 @@ artifacts:
       observe, not implementation mechanics. Reuse the proposal's terms and
       boundaries.
 
+      Use CLI changeRoot, artifactPaths, resolvedOutputPath, and dependency paths
+      from status/instructions as authority. All generates paths are relative
+      to changeRoot, not the working directory. specs/**/*.md is a glob:
+      write non-empty <changeRoot>/specs/<capability>/spec.md for each capability.
+      Never write a literal glob path or count an empty directory as completion.
+      Read concrete dependency files; verify existingOutputPaths and refreshed
+      status after writing. Missing metadata or conflicting paths are blockers.
+
       Use ADDED, MODIFIED, REMOVED, or RENAMED requirement headers. Every
       requirement MUST use SHALL or MUST and contain at least one scenario.
       Every scenario MUST use exactly `#### Scenario:` plus GIVEN, WHEN, and
@@ -79,7 +87,8 @@ artifacts:
     template: adr.md
     instruction: >
       Review design.md for durable architecture commitments. Write the
-      change-local manifest at openspec/changes/<change>/adr.md. It MUST list
+      change-local manifest at the CLI resolvedOutputPath (<changeRoot>/adr.md).
+      It MUST list
       in-force repository ADRs reviewed and every new repository-level ADR
       created for this change.
 
