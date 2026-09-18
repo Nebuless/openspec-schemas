@@ -3,6 +3,8 @@ description: Debug one bounded OpenSpec failure
 ---
 # Debug One OpenSpec Failure
 
+Use CLI artifactPaths, resolvedOutputPath, and changeRoot as layout authority. Read concrete existingOutputPaths and contextFiles, never guessed files. Required specs must contain non-empty <changeRoot>/specs/<capability>/spec.md files; an empty directory is not completion. Missing metadata blocks work.
+
 Resolve an explicit change or an unambiguous existing change from context or `openspec list --json`; otherwise stop for selection. Never create a change. Run `openspec status --change "<change>" --json`; reject any schemaName other than `compound-intent-driven`. Honor planningHome, changeRoot, and actionContext. For a named store, discover its id with `openspec store list --json` and retain `--store <id>` on change commands.
 
 Run `openspec instructions apply --change "<change>" --json`. Read every concrete dependency path or contextFiles entry, including settled proposal/specs/design/ADR/tasks, and relevant failing code. Stop if apply is blocked. Require one selected task or named failure mapped to an existing task, even if already checked. Build a packet containing taskId, instruction, failure evidence, named proof, settled decisions, and allowed mutation paths. Missing ownership or reproduction evidence blocks a fix.

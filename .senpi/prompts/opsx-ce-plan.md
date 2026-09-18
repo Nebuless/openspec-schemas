@@ -1,5 +1,7 @@
 # Plan One OpenSpec Artifact
 
+CLI artifactPaths and resolvedOutputPath are layout authority; generates is relative to changeRoot. Expand specs/**/*.md into non-empty <changeRoot>/specs/<capability>/spec.md files for approved capabilities, never a literal glob or empty directory. Read concrete dependency files and verify contents plus refreshed existingOutputPaths and status before completion. Missing metadata blocks work; never guess paths.
+
 Resolve an explicit change or an unambiguous existing change from context or `openspec list --json`; otherwise stop for selection. Never create a change. Run `openspec status --change "<change>" --json`; reject any schemaName other than `compound-intent-driven`. Honor planningHome, changeRoot, and actionContext. For a named store, discover its id with `openspec store list --json` and retain `--store <id>` on change commands.
 
 Require one explicitly selected planning artifact: specs, design, adr, or tasks. Do not select a stage automatically. Require its status to be ready; blocked prerequisites or an already completed artifact require an explicit owning-artifact revision decision, not bypass. Run `openspec instructions <artifact> --change "<change>" --json`. Read its template, every concrete dependency path or contextFiles entry, and settled proposal/specs/design/ADR decisions. Build a packet containing artifactId, resolvedOutputPath, instruction, settled decisions, and allowed mutation paths. Missing paths or conflicts are blockers.

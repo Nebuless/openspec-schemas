@@ -1,5 +1,7 @@
 # Retain One OpenSpec Learning
 
+Use CLI artifactPaths, resolvedOutputPath, and changeRoot as layout authority. Read concrete existingOutputPaths and contextFiles, never guessed files. Required specs must contain non-empty <changeRoot>/specs/<capability>/spec.md files; an empty directory is not completion. Missing metadata blocks work.
+
 Resolve an explicit change or an unambiguous existing change from context or `openspec list --json`; otherwise stop for selection. Never create a change. Run `openspec status --change "<change>" --json`; reject any schemaName other than `compound-intent-driven`. Honor planningHome, changeRoot, and actionContext. For a named store, discover its id with `openspec store list --json` and retain `--store <id>` on change commands.
 
 Run `openspec instructions apply --change "<change>" --json`. Read every concrete dependency path or contextFiles entry, including proposal, specs, design, adr, and tasks, plus verified proof/review evidence and existing learnings. Stop if apply is blocked or work lacks passing proof or has unresolved findings. Build a packet containing instruction, settled decisions, evidence, and one allowed learning output path in the repository learning store (normally docs/solutions/). Missing path authorization is a blocker to writing, not permission to invent a store.

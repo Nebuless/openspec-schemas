@@ -66,6 +66,6 @@ flowchart LR
 ## Handoff to Next Artifacts
 Summarize how these findings should inform:
 - `event-modeling.md`
-- `specs/**/*.md`
+- Concrete non-empty `<changeRoot>/specs/<capability>/spec.md` files resolved from CLI specs instructions, not the literal `specs/**/*.md` glob.
 - `design.md`
 - `asyncapi.yaml`

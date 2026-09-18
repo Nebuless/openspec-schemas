@@ -15,6 +15,7 @@ This directory owns canonical adapter text. Host paths only project it.
 ## Work Guidance
 
 - Resolve change, read OpenSpec status/instructions and concrete context files before action.
+- Treat CLI `artifactPaths`, `resolvedOutputPath`, and `changeRoot` as layout authority. Specs globs require non-empty capability files and refreshed `existingOutputPaths`, not directory-only completion.
 - Continue from approved artifacts. Never ask for plan/work scope already recorded there.
 - Restrict edits to stage-owned OpenSpec artifacts or selected implementation task.
 - Return result, proof, mutations, next context, and material blockers.

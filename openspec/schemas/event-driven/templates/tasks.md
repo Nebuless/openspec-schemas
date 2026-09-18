@@ -1,6 +1,6 @@
 ## 1. Validate Upstream Artifacts
 
-- [ ] 1.1 Confirm `specs/**/*.md` is reviewed and acceptance criteria are final.
+- [ ] 1.1 Confirm concrete non-empty `<changeRoot>/specs/<capability>/spec.md` files from CLI `existingOutputPaths` are reviewed and acceptance criteria are final.
 - [ ] 1.2 Confirm `design.md` is reviewed and stack/security decisions are finalized.
 - [ ] 1.3 Run `asyncapi-cli validate asyncapi.yaml` and resolve all errors.
 

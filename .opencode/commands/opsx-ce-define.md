@@ -3,6 +3,8 @@ description: Define bounded OpenSpec intent
 ---
 # Define OpenSpec Intent
 
+Use CLI artifactPaths, resolvedOutputPath, and changeRoot as layout authority. Read concrete dependency paths, never guessed files. Verify non-empty owned output and refreshed existingOutputPaths before completion. Missing metadata blocks work.
+
 Resolve an explicit change or an unambiguous existing change from context or `openspec list --json`; otherwise stop for selection. Never create a change. Run `openspec status --change "<change>" --json`; reject any schemaName other than `compound-intent-driven`. Honor planningHome, changeRoot, and actionContext. For a named store, discover its id with `openspec store list --json` and retain `--store <id>` on change commands.
 
 Run `openspec instructions proposal --change "<change>" --json`. Read its template and every concrete dependency path or contextFiles entry, plus existing proposal and relevant repository learnings. Build a packet containing change, schemaName, artifactId, instruction, resolvedOutputPath, settled decisions, and allowed mutation paths. Missing paths or conflicting evidence are blockers; never guess ownership.

@@ -1,7 +1,8 @@
 ## Context
 
 Summarize architecture context from `event-storming.md`, `event-modeling.md`,
-and approved stories in `specs/**/*.md`.
+and approved stories in concrete non-empty `<changeRoot>/specs/<capability>/spec.md`
+files listed by CLI `artifactPaths.specs.existingOutputPaths`.
 
 ## Goals / Non-Goals
 
