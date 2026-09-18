@@ -13,7 +13,17 @@ function run(command, args, options = {}) {
 function ok(result) { assert.equal(result.status, 0, result.stderr + result.stdout); }
 try {
   const tools = path.join(tmp, 'tools');
-  write(path.join(tools, 'openspec'), '#!/bin/sh\nexit "${VALIDATION_STATUS:-0}"\n');
+  write(path.join(tools, 'openspec'), `#!${process.execPath}
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+if (process.env.CALL_LOG) fs.appendFileSync(process.env.CALL_LOG, JSON.stringify({ args, cwd: process.cwd() }) + '\\n');
+if (args[0] === 'status') {
+  if (process.env.STATUS_FAIL) process.exit(1);
+  const postflight = !args.includes('--schema') && process.env.STATUS_METADATA && fs.readFileSync(process.env.STATUS_METADATA, 'utf8') !== process.env.STATUS_ORIGINAL;
+  if (postflight && process.env.POSTFLIGHT_FAIL) process.exit(1);
+  process.stdout.write(postflight ? (process.env.POSTFLIGHT_STATUS ?? process.env.TARGET_STATUS) : (process.env[args.includes('--schema') ? 'TARGET_STATUS' : 'SOURCE_STATUS'] || '{}'));
+} else process.exit(Number(process.env.VALIDATION_STATUS || 0));
+`);
   write(path.join(tools, 'git'), '#!/bin/sh\nif [ "$1" = clone ]; then\n  destination=\n  for arg; do destination=$arg; done\n  mkdir -p "$destination/.agents/skills/openspec-git-discipline"\n  exit 0\nfi\nif [ "$1" = -C ] && [ "$3" = rev-parse ]; then\n  printf "%s\\n" 0123456789012345678901234567890123456789\n  exit 0\nfi\nif [ "$1" = ls-files ]; then\n  command -p git "$@"\n  exit $?\nfi\nexit 1\n');
   const env = { ...process.env, PATH: `${tools}:${process.env.PATH}` };
   const cli = (args, overrides = {}) => run(process.execPath, [path.join(root, 'bin/openspec-schemas.js'), ...args], { env: { ...env, ...overrides } });
@@ -73,6 +83,98 @@ try {
   assert.notEqual(cli(['install', 'compound-intent-driven', '-a']).status, 0);
   assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'invalid']).status, 0);
   assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'pi', '--host', 'atomic']).status, 0);
+  const project = path.join(tmp, 'switch project');
+  const changeRoot = path.join(project, 'openspec/changes/authoritative-root');
+  const metadata = path.join(changeRoot, '.openspec.yaml');
+  const original = '# keep\r\nschema: old  # pinned\r\ncreated: 2026-01-01\r\ncontext: |\r\n  schema: untouched\r\n';
+  write(metadata, original);
+  fs.chmodSync(metadata, 0o640);
+  write(path.join(project, 'openspec/config.yaml'), 'schema: project-default\n');
+  write(path.join(changeRoot, 'proposal.md'), 'existing artifact\n');
+  const artifact = { id: 'proposal', outputPath: 'proposal.md', status: 'done', requires: [] };
+  const source = { changeName: 'example', changeRoot, schemaName: 'old', artifacts: [artifact] };
+  const destination = { ...source, schemaName: 'custom-local' };
+  const statusEnv = { SOURCE_STATUS: JSON.stringify(source), TARGET_STATUS: JSON.stringify(destination), STATUS_METADATA: metadata, STATUS_ORIGINAL: original };
+  const switchArgs = ['set-change-schema', 'example', 'custom-local', '-t', project];
+  const snapshot = directory => fs.readdirSync(directory).sort().map(name => {
+    const file = path.join(directory, name);
+    const info = fs.lstatSync(file);
+    return [name, info.mode, info.isSymbolicLink() ? fs.readlinkSync(file) : info.isDirectory() ? snapshot(file) : fs.readFileSync(file).toString('hex')];
+  });
+  const before = snapshot(project);
+  const log = path.join(tmp, 'status-calls');
+  ok(cli(switchArgs, { ...statusEnv, CALL_LOG: log }));
+  assert.deepEqual(snapshot(project), before);
+  assert.deepEqual(fs.readFileSync(log, 'utf8').trim().split('\n').map(JSON.parse), [
+    { args: ['status', '--change', 'example', '--json'], cwd: project },
+    { args: ['status', '--change', 'example', '--json', '--schema', 'custom-local'], cwd: project },
+    { args: ['schema', 'validate', 'custom-local'], cwd: project },
+  ]);
+  const rejected = (args = switchArgs, overrides = {}) => {
+    const prior = snapshot(project);
+    assert.notEqual(cli(args, { ...statusEnv, ...overrides }).status, 0);
+    assert.deepEqual(snapshot(project), prior);
+  };
+  for (const overrides of [{ POSTFLIGHT_FAIL: '1' }, { POSTFLIGHT_STATUS: JSON.stringify(source) }, { POSTFLIGHT_STATUS: JSON.stringify({ ...destination, changeRoot: tmp }) }, { POSTFLIGHT_STATUS: '{' }, { POSTFLIGHT_STATUS: '{}' }]) {
+    fs.writeFileSync(log, '');
+    rejected([...switchArgs, '--apply'], { ...overrides, CALL_LOG: log });
+    assert.deepEqual(fs.readFileSync(log, 'utf8').trim().split('\n').map(JSON.parse), [
+      { args: ['status', '--change', 'example', '--json'], cwd: project },
+      { args: ['status', '--change', 'example', '--json', '--schema', 'custom-local'], cwd: project },
+      { args: ['schema', 'validate', 'custom-local'], cwd: project },
+      { args: ['status', '--change', 'example', '--json'], cwd: project },
+    ]);
+  }
+  for (const extra of [['--unknown'], ['extra'], ['--apply', '--apply'], ['--allow-incompatible', '--allow-incompatible'], ['--target', project], ['-t'], ['--target', '--apply']]) rejected([...switchArgs, ...extra]);
+  for (const args of [[], ['example'], ['../example', 'custom-local'], ['archive', 'custom-local'], ['example', '../schema'], ['--apply', 'custom-local']]) rejected(['set-change-schema', ...args, '-t', project]);
+  for (const overrides of [{ PATH: tmp }, { STATUS_FAIL: '1' }, { VALIDATION_STATUS: '1' }, { SOURCE_STATUS: '{' }, { TARGET_STATUS: '{}' }]) rejected([...switchArgs, '--apply'], overrides);
+  for (const status of ['ready', 'blocked']) {
+    ok(cli([...switchArgs, '--apply'], { ...statusEnv, TARGET_STATUS: JSON.stringify({ ...destination, artifacts: [{ ...artifact, status }] }) }));
+    assert.equal(fs.readFileSync(metadata, 'utf8'), original.replace('schema: old', 'schema: custom-local'));
+    write(metadata, original);
+    fs.chmodSync(metadata, 0o640);
+  }
+  for (const artifacts of [[], [{ ...artifact, id: 'renamed' }], [{ ...artifact, outputPath: 'other.md' }], [{ ...artifact, status: 'invalid' }], [{ ...artifact, requires: ['proposal'] }], [{ ...artifact, dependencies: ['proposal'] }], [{ ...artifact, missingDeps: ['proposal'] }], [artifact, artifact]]) {
+    rejected([...switchArgs, '--apply'], { TARGET_STATUS: JSON.stringify({ ...destination, artifacts }) });
+  }
+  for (const unsafeRoot of [undefined, path.join(tmp, 'outside'), path.join(project, 'openspec/changes-other/example'), path.join(project, 'openspec/changes/archive/example'), path.join(project, 'openspec/changes/missing'), path.join(project, 'openspec/changes')]) {
+    rejected([...switchArgs, '--apply'], { SOURCE_STATUS: JSON.stringify({ ...source, changeRoot: unsafeRoot }) });
+  }
+  rejected([...switchArgs, '--apply'], { TARGET_STATUS: JSON.stringify({ ...destination, changeRoot: tmp }) });
+  for (const text of ['created: today\n', 'schema: old\nschema: old\n', '"schema": old\n', 'schema: "old"\n', 'schema: old\n---\nschema: old\n', 'schema: old\n<<: *defaults\n', 'schema: wrong\n', 'schema: old\n\'schema\': other\n', 'schema: old\n"sch\\u0065ma": other\n', 'schema: old\n? schema\n: other\n']) {
+    write(metadata, text);
+    rejected([...switchArgs, '--apply', '--allow-incompatible']);
+  }
+  fs.unlinkSync(metadata);
+  rejected([...switchArgs, '--apply']);
+  fs.mkdirSync(metadata);
+  rejected([...switchArgs, '--apply']);
+  fs.rmdirSync(metadata);
+  fs.symlinkSync(path.join(project, 'openspec/config.yaml'), metadata);
+  rejected([...switchArgs, '--apply']);
+  fs.unlinkSync(metadata);
+  write(metadata, original);
+  fs.chmodSync(metadata, 0o640);
+  const linkedRoot = path.join(project, 'openspec/changes/linked');
+  fs.symlinkSync(changeRoot, linkedRoot);
+  rejected([...switchArgs, '--apply'], { SOURCE_STATUS: JSON.stringify({ ...source, changeRoot: linkedRoot }) });
+  fs.unlinkSync(linkedRoot);
+  const incompatible = { ...statusEnv, TARGET_STATUS: JSON.stringify({ ...destination, artifacts: [] }) };
+  ok(cli([...switchArgs, '--allow-incompatible'], incompatible));
+  assert.deepEqual(snapshot(project), before);
+  ok(cli([...switchArgs, '--apply', '--allow-incompatible'], incompatible));
+  assert.equal(fs.readFileSync(metadata, 'utf8'), original.replace('schema: old', 'schema: custom-local'));
+  assert.equal(fs.statSync(metadata).mode & 0o777, 0o640);
+  const applied = snapshot(project);
+  ok(cli([...switchArgs, '--apply'], { SOURCE_STATUS: JSON.stringify(destination), TARGET_STATUS: JSON.stringify(destination) }));
+  assert.deepEqual(snapshot(project), applied);
+  write(metadata, original);
+  fs.chmodSync(metadata, 0o640);
+  ok(cli([...switchArgs, '--apply'], statusEnv));
+  assert.deepEqual(snapshot(project), applied);
+  write(metadata, original);
+  fs.chmodSync(metadata, 0o640);
+  assert.deepEqual(snapshot(project), before);
   const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']);
   const tracked = run('git', ['ls-files', '-z']);
   ok(tracked);
