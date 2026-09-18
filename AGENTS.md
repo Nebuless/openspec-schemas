@@ -8,7 +8,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 
 | Area | Owner | Notes |
 |---|---|---|
-| Public install/release docs | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; beta `0.1.6`, latest `0.1.5`. |
+| Public install/release docs | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; beta `0.1.7`, latest `0.1.5`. |
 | Installers, lint, test | `scripts/` | Portable core; CI and hooks delegate here. |
 | Schema packages | `openspec/schemas/` | Self-contained publishable directories. |
 | Canonical Compound commands | `openspec/schemas/compound-intent-driven/adapters/shared/` | Host paths are projections. |
@@ -134,6 +134,8 @@ Default section order:
 ## User Preferences
 
 When the user requests a durable behavior change, record it here or in the relevant child AGENTS.md
+
+- OpenSpec skills and commands use CLI-authoritative artifact metadata, never guessed change roots. Specs globs require concrete non-empty `<changeRoot>/specs/<capability>/spec.md` files; keep local host copies and shipped adapter projections aligned.
 
 ## Child DOX Index
 

@@ -36,7 +36,7 @@ To try these schemas without installing anything, start from a template repo —
 
 ### Package CLI
 
-`@nebulesstech/openspec-schemas` is published. Version `0.1.6` is the current
+`@nebulesstech/openspec-schemas` is published. Version `0.1.7` is the current
 `beta`; `0.1.5` remains `latest`. Node >=20 and Nub are required; no package
 dependencies or build step are needed. Install from any project with Nub:
 

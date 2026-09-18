@@ -15,6 +15,22 @@ All notable changes will be documented here using
 
 ### Fixed
 
+- No changes yet.
+
+## [0.1.7] - 2026-09-18
+
+### Added
+
+- No changes yet.
+
+### Changed
+
+- No changes yet.
+
+### Fixed
+
+- Make artifact layout CLI-authoritative across schemas, skills, commands, and Compound host projections; require concrete non-empty capability specs and add offline regression checks.
+
 ## [0.1.6] - 2026-09-17
 
 ### Added
@@ -31,4 +47,5 @@ All notable changes will be documented here using
 ### Fixed
 
 [Unreleased]: https://github.com/Nebuless/openspec-schemas/commits/HEAD
+[0.1.7]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.6
