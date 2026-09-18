@@ -146,6 +146,7 @@ Default section order:
 When the user requests a durable behavior change, record it here or in the relevant child AGENTS.md
 
 - OpenSpec skills and commands use CLI-authoritative artifact metadata, never guessed change roots. Specs globs require concrete non-empty `<changeRoot>/specs/<capability>/spec.md` files; keep local host copies and shipped adapter projections aligned.
+- Compound envelope work keeps OpenSpec as artifact, task, and lifecycle authority. Planning records stable unit, batch, layer, path claim, proof, and continuation fields. Outer loops may use only pre-created, outer-owned worktrees after isolation checks; bounded workers and adapters never manage worktrees or create commits, pushes, pull requests, archival, or separate state.
 
 ## Child DOX Index
 
