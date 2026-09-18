@@ -6,6 +6,8 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'schemas-release-'));
+const designSchema = 'intent-driven-design';
+const designSchemaFiles = ['README.md', 'schema.yaml', 'skills.txt', 'templates/adr.md', 'templates/design.md', 'templates/journey.md', 'templates/proposal.md', 'templates/spec.md', 'templates/tasks.md'].map(file => `openspec/schemas/${designSchema}/${file}`);
 function write(file, text) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text, { mode: 0o755 }); }
 function run(command, args, options = {}) {
   return spawnSync(command, args, { cwd: root, encoding: 'utf8', ...options });
@@ -27,9 +29,11 @@ if (args[0] === 'status') {
   write(path.join(tools, 'git'), '#!/bin/sh\nif [ "$1" = clone ]; then\n  destination=\n  for arg; do destination=$arg; done\n  mkdir -p "$destination/.agents/skills/openspec-git-discipline"\n  exit 0\nfi\nif [ "$1" = -C ] && [ "$3" = rev-parse ]; then\n  printf "%s\\n" 0123456789012345678901234567890123456789\n  exit 0\nfi\nif [ "$1" = ls-files ]; then\n  command -p git "$@"\n  exit $?\nfi\nexit 1\n');
   const env = { ...process.env, PATH: `${tools}:${process.env.PATH}` };
   const cli = (args, overrides = {}) => run(process.execPath, [path.join(root, 'bin/openspec-schemas.js'), ...args], { env: { ...env, ...overrides } });
-  ok(cli(['list'], { PATH: tmp }));
+  const listed = cli(['list'], { PATH: tmp });
+  ok(listed); assert.equal(listed.stdout.split('\n').filter(name => name === designSchema).length, 1);
   ok(cli(['validate']));
   ok(cli(['verify']));
+  ok(cli(['validate', designSchema]));
   ok(cli(['validate', 'minimalist']));
   assert.notEqual(cli(['validate', 'missing']).status, 0);
   assert.notEqual(cli(['validate', 'minimalist', 'event-driven']).status, 0);
@@ -187,16 +191,33 @@ if (args[0] === 'status') {
       /^\.(?:opencode\/commands|senpi\/prompts|pi\/prompts|atomic\/prompts)\/opsx-ce-.*\.md$/.test(file)
     ) packageFiles.add(file);
   }
+  for (const file of designSchemaFiles) packageFiles.add(file);
   const files = [...packageFiles];
-  assert(files.includes('bin/openspec-schemas.js'));
-  assert(files.includes('.pi/prompts/opsx-ce-plan.md'));
-  assert(files.includes('CHANGELOG.md'));
-  assert(!files.some(file => /^scripts\/(lint-|test-|quality)/.test(file)));
-  assert(!files.some(file => /(^\.omo\/|node_modules|package-lock|^openspec\/changes\/|^\.opencode\/package.json)/.test(file)));
+  assert.deepEqual(files.filter(file => file.startsWith(`openspec/schemas/${designSchema}/`)).sort(), designSchemaFiles.toSorted()); assert.deepEqual(designSchemaFiles.filter(file => !fs.statSync(path.join(root, file)).isFile()), []);
+  assert(files.includes('bin/openspec-schemas.js')); assert(files.includes('.pi/prompts/opsx-ce-plan.md')); assert(files.includes('CHANGELOG.md'));
+  assert(!files.some(file => /^scripts\/(lint-|test-|quality)/.test(file))); assert(!files.some(file => /(^\.omo\/|node_modules|package-lock|^openspec\/changes\/|^\.opencode\/package.json|^\.(?:claude|codex|omp)\/|^openspec\/schemas\/intent-driven-design\/(?:assets|external|repos|research)\/)/.test(file))); assert(!files.some(file => /^\.(?:opencode\/commands|senpi\/prompts|pi\/prompts|atomic\/prompts)\/(?!opsx-ce-)/.test(file)));
   const extracted = path.join(tmp, 'package');
   for (const file of files) { const output = path.join(extracted, file); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.copyFileSync(path.join(root, file), output); }
-  ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'install', 'compound-intent-driven', '--host', 'atomic', '--target', path.join(tmp, 'packed-target')], { env }));
-  ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'validate'], { env }));
+  const packedCli = args => run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), ...args], { env });
+  const packedList = packedCli(['list']);
+  ok(packedList); assert.equal(packedList.stdout.split('\n').filter(name => name === designSchema).length, 1);
+  const packedTarget = path.join(tmp, 'packed-target');
+  write(path.join(packedTarget, 'openspec/config.yaml'), 'schema: minimalist\n'); write(path.join(packedTarget, 'nested/config.yaml'), 'schema: unrelated\n'); write(path.join(packedTarget, 'sentinel'), 'keep');
+  ok(packedCli(['install', designSchema, '--target', packedTarget, '--activate']));
+  assert.equal(fs.readFileSync(path.join(packedTarget, 'openspec/config.yaml'), 'utf8'), `schema: ${designSchema}\n`); assert.equal(fs.readFileSync(path.join(packedTarget, 'nested/config.yaml'), 'utf8'), 'schema: unrelated\n'); assert.equal(fs.readFileSync(path.join(packedTarget, 'sentinel'), 'utf8'), 'keep');
+  assert.deepEqual(designSchemaFiles.map(file => file.replace(`openspec/schemas/${designSchema}/`, '')).sort(), snapshot(path.join(packedTarget, 'openspec/schemas', designSchema)).flatMap(function paths(entry) {
+    const [name, , value] = entry;
+    return Array.isArray(value) ? value.flatMap(paths).map(file => `${name}/${file}`) : [name];
+  }).sort());
+  const collisionTarget = path.join(tmp, 'packed-collision');
+  write(path.join(collisionTarget, `openspec/schemas/${designSchema}/schema.yaml`), 'old'); write(path.join(collisionTarget, 'sentinel'), 'keep');
+  const collisionBefore = snapshot(collisionTarget);
+  assert.notEqual(packedCli(['install', designSchema, '--target', collisionTarget]).status, 0); assert.deepEqual(snapshot(collisionTarget), collisionBefore);
+  ok(packedCli(['install', designSchema, '--target', collisionTarget, '--force'])); assert.equal(fs.readFileSync(path.join(collisionTarget, 'sentinel'), 'utf8'), 'keep');
+  const symlinkTarget = path.join(tmp, 'packed-symlink');
+  write(path.join(symlinkTarget, 'sentinel'), 'keep'); fs.mkdirSync(path.join(symlinkTarget, 'openspec/schemas'), { recursive: true }); fs.symlinkSync(tmp, path.join(symlinkTarget, `openspec/schemas/${designSchema}`));
+  const symlinkBefore = snapshot(symlinkTarget);
+  assert.notEqual(packedCli(['install', designSchema, '--target', symlinkTarget, '--force']).status, 0); assert.deepEqual(snapshot(symlinkTarget), symlinkBefore); ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'validate'], { env })); ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'verify'], { env }));
   const fixture = path.join(tmp, 'quality');
   fs.mkdirSync(path.join(fixture, 'scripts'), { recursive: true });
   for (const file of ['quality.sh', 'install-git-hooks.sh', 'lint-markdown.js', 'update-changelog.js']) fs.copyFileSync(path.join(root, 'scripts', file), path.join(fixture, 'scripts', file));

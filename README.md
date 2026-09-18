@@ -2,7 +2,7 @@
 
 Copyable workflow schemas for
 [OpenSpec](https://github.com/Fission-AI/OpenSpec). OpenSpec provides the
-built-in `spec-driven` workflow. This package adds eight focused alternatives
+built-in `spec-driven` workflow. This package adds nine focused alternatives
 for different delivery styles.
 
 ## Choosing a Schema
@@ -21,6 +21,7 @@ companion skills.
 | [`intent-driven-engineering`](./openspec/schemas/intent-driven-engineering/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work needs source-aware engineering skills and phase guidance |
 | [`intent-driven-superpowers`](./openspec/schemas/intent-driven-superpowers/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work uses Superpowers implementation, debugging, review, and verification skills |
 | [`compound-intent-driven`](./openspec/schemas/compound-intent-driven/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work uses Compound Engineering's define, plan, build, simplify, review, and learning loop |
+| [`intent-driven-design`](./openspec/schemas/intent-driven-design/README.md) | `journey -> proposal -> (specs, design) -> adr -> tasks` | Product, UI, or platform work needs discovery evidence, explicit user decisions, and durable architecture records |
 | [`event-driven`](./openspec/schemas/event-driven/README.md) | `event-storming -> event-modeling -> specs -> design -> asyncapi -> tasks` | Event-centric or AsyncAPI-first systems |
 | [`minimalist`](./openspec/schemas/minimalist/README.md) | `specs -> tasks` | Small, well-scoped, low-risk changes |
 
@@ -37,9 +38,9 @@ companion skill for fenced-Gherkin authoring and executable acceptance testing.
 
 ## Install a Schema
 
-`@nebulesstech/openspec-schemas` `0.1.7` is published on the `beta` tag;
-`0.1.5` remains `latest`. Node >=20, Nub, and an initialized OpenSpec project
-are required.
+Package source is version `0.1.8`. Registry tags remain `0.1.7` on `beta` and
+`0.1.5` on `latest`. Node >=20, Nub, and an initialized OpenSpec project are
+required.
 
 Install and activate a schema from your project directory:
 
@@ -111,6 +112,7 @@ guide asks the agent to list available schemas and confirm one before install.
 - [Intent-driven engineering workflow](./openspec/schemas/intent-driven-engineering/README.md)
 - [Intent-driven Superpowers workflow](./openspec/schemas/intent-driven-superpowers/README.md)
 - [Compound intent-driven workflow](./openspec/schemas/compound-intent-driven/README.md)
+- [Intent-driven design workflow](./openspec/schemas/intent-driven-design/README.md)
 - [Event-driven workflow](./openspec/schemas/event-driven/README.md)
 - [Minimalist workflow](./openspec/schemas/minimalist/README.md)
 
