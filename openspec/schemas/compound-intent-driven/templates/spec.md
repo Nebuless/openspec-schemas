@@ -21,3 +21,7 @@ Rule: <business rule>
 **Reason**: <!-- why this behaviour is removed -->
 
 **Migration**: <!-- how users or systems should adapt -->
+
+## Next Handoff
+
+<!-- Exact next OpenSpec command, or blocking condition when no command is safe. -->
