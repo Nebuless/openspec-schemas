@@ -63,29 +63,28 @@ Each custom schema folder SHALL include documentation that explains intended use
 - **THEN** it can determine whether the schema fits and can instruct the user to set `schema: <schema-name>` in `openspec/config.yaml`
 
 ### Requirement: Repository root SHALL provide catalog and install guidance for humans and agents
-The repository root SHALL include a `README.md` that explains the purpose of this schema collection, starts the main install section with an agent-oriented prompt that points to the raw root `README.md`, gives a self-install fallback for human readers, includes a dedicated agent-oriented install flow that removes ambiguity about prerequisites and copying the full schema folder, and lists only currently packaged schemas with canonical spec coverage. The install section SHALL also note that schemas declare companion skills in a `skills.txt` manifest and that the install guide's skills step installs those skills into `.agents/skills/` from https://github.com/intent-driven-dev/skills.
+The repository root SHALL include a concise `README.md` for users choosing and installing a published schema. It SHALL explain the collection's purpose, provide one Nub-first public install path, point coding agents to `AGENT_INSTALL.md` for complete installation, and link contributor and schema-specific documentation instead of repeating their procedures.
 
-The root `README.md` SHALL additionally include a "Choosing a Schema" section, placed before the install section, that positions the upstream `spec-driven` built-in as the default for most projects and `intent-driven` as the most complete general-purpose schema for complex projects, provides a comparison table covering `spec-driven` and every packaged schema with each schema's artifact flow and choose-when guidance, and documents inter-schema relationships accurately: `intent-driven` is `behaviour-driven` plus a durable ADR artifact — the same OpenSpec Markdown delta specs and the same companion skill set — and still subsumes `spec-driven-with-adr`; `behaviour-driven` remains the choice when durable ADRs are not needed; `event-driven` is domain-specific for event-centric/AsyncAPI-first systems; `minimalist` is for small, low-risk changes. Executable acceptance testing and fenced-Gherkin authoring SHALL be described as provided by the `spec-as-source` companion skill that `behaviour-driven` and `intent-driven` declare, not as properties of those schemas.
+The root `README.md` SHALL include a schema comparison table before installation guidance. The table SHALL cover the upstream `spec-driven` built-in and every packaged schema with canonical spec coverage. Each packaged schema name SHALL link directly to its local `openspec/schemas/<schema-name>/README.md`, and every row SHALL provide artifact flow and choose-when guidance.
 
-Every schema entry in the root catalog SHALL be nested under a single catalog section at the same heading level and SHALL follow a consistent structure: description, artifact order, activation snippet for `openspec/config.yaml`, validate command, and a link to the schema's README. The `intent-driven` catalog entry SHALL link https://github.com/intent-driven-dev/intent-driven-template as a starter project with the schema pre-installed, while skills references continue to point at https://github.com/intent-driven-dev/skills.
+The comparison SHALL position `spec-driven` as the default for most projects and `intent-driven` as the most complete general-purpose schema for complex projects. It SHALL document that `intent-driven` adds a durable ADR artifact to `behaviour-driven` and subsumes `spec-driven-with-adr`; `behaviour-driven` remains the choice when durable ADRs are not needed; `event-driven` targets event-centric or AsyncAPI-first systems; and `minimalist` targets small, low-risk changes. Executable acceptance testing and fenced-Gherkin authoring SHALL be attributed to the optional `spec-as-source` companion skill, not to a schema.
+
+The root install guidance SHALL state that schema packages declare companion skills in `skills.txt`. Detailed prerequisites, fallback copying, activation, validation, skill installation, adapter installation, collision handling, and maintainer CLI commands SHALL remain in their owning agent, schema, or contributor documentation.
 
 #### Scenario: Human discovers schema options from repo root
 - **WHEN** a human user opens the repository root `README.md`
-- **THEN** they can find a self-install fallback that explains how to get the repository locally, where schema folders are copied, how a schema is activated in `openspec/config.yaml`, and how to validate the install
+- **THEN** they can compare the built-in schema and every packaged schema by artifact flow and intended use
+- **AND** each packaged schema name links to its local schema README
 
-#### Scenario: Agent discovers deterministic install flow from repo root
+#### Scenario: Agent reaches complete installation guidance from repo root
 - **WHEN** a coding agent opens the repository root `README.md`
-- **THEN** it can find a top-level raw-README prompt handoff plus a dedicated agent-oriented install section that starts with prerequisite checks, explains the early-exit behavior, and tells it to clone the repo locally before copying the full schema directory recursively
+- **THEN** it can find a prompt that points to the raw `AGENT_INSTALL.md`
+- **AND** the local `AGENT_INSTALL.md` link identifies the complete installation guide
 
 #### Scenario: Human discovers the intent-driven schema from the root catalog
 - **WHEN** a human user opens the repository root `README.md`
 - **THEN** they can find `intent-driven` in the schema catalog
 - **AND** they can find a reference to `openspec/schemas/intent-driven/README.md`.
-
-#### Scenario: Agent can install the intent-driven schema from catalog guidance
-- **WHEN** a coding agent follows the repository install guidance for `intent-driven`
-- **THEN** it can copy the full `openspec/schemas/intent-driven/` folder into a target project's `openspec/schemas/intent-driven/`
-- **AND** activate it with `schema: intent-driven`.
 
 #### Scenario: Root catalog excludes removed linearized schema
 - **GIVEN** the `linearized` schema package has been removed from `openspec/schemas/linearized/`
@@ -97,7 +96,7 @@ Every schema entry in the root catalog SHALL be nested under a single catalog se
 #### Scenario: Reader learns about associated skills from the root README
 - **WHEN** a human or coding agent reads the "Install a Schema" section of the root `README.md`
 - **THEN** they learn that each schema declares companion skills in a `skills.txt` manifest
-- **AND** they learn the install guide's skills step installs those skills into `.agents/skills/` from https://github.com/intent-driven-dev/skills
+- **AND** they can follow the agent install guide or schema README for skill details
 
 #### Scenario: Reader can choose a schema from the root README
 - **WHEN** a human or coding agent reads the "Choosing a Schema" section of the root `README.md`
@@ -112,20 +111,20 @@ Every schema entry in the root catalog SHALL be nested under a single catalog se
 - **AND** they learn that `event-driven` targets event-centric/AsyncAPI-first systems and `minimalist` targets small, low-risk changes
 
 #### Scenario: Acceptance testing is attributed to the companion skill
-- **WHEN** a human or coding agent reads the `behaviour-driven` or `intent-driven` entries in the root `README.md`
+- **WHEN** a human or coding agent reads the root schema comparison
 - **THEN** executable acceptance testing and fenced-Gherkin authoring are described as provided by the `spec-as-source` companion skill
-- **AND** neither entry claims that the schema itself defines a fenced-Gherkin format or runs an acceptance suite
-- **AND** neither entry names a `stack:` key as part of activation.
+- **AND** no schema is described as running an acceptance suite
+- **AND** the root guidance does not name a `stack:` key as part of activation.
 
-#### Scenario: Reader discovers the intent-driven starter template
-- **WHEN** a human or coding agent reads the `intent-driven` entry in the root catalog
-- **THEN** they can find a link to https://github.com/intent-driven-dev/intent-driven-template described as a starter project with the intent-driven schema already installed
-- **AND** skills references continue to point at https://github.com/intent-driven-dev/skills
+#### Scenario: Human has one published install path
+- **WHEN** a human user reads the root install section
+- **THEN** they find one Nub-first command that installs and activates a selected published schema
+- **AND** detailed variants and fallback procedures are linked rather than repeated
 
-#### Scenario: Catalog entries are consistent and correctly nested
+#### Scenario: Catalog links disclose schema detail
 - **WHEN** a human or coding agent reads the schema catalog in the root `README.md`
-- **THEN** every packaged schema, including `spec-driven-with-adr`, appears under the same catalog section at the same heading level
-- **AND** every entry provides description, artifact order, activation snippet, validate command, and a link to the schema's README
+- **THEN** every packaged schema, including `spec-driven-with-adr`, appears in one comparison table
+- **AND** every packaged schema links to its README for fit, activation, artifact, and skill detail
 
 #### Scenario: Post-apply validation still passes
 - **WHEN** the root `README.md` update is applied
@@ -137,4 +136,3 @@ Any new schema or schema modification in this repository SHALL be verified by ru
 #### Scenario: Schema passes structural validation
 - **WHEN** a contributor finishes creating or editing a schema
 - **THEN** they run `openspec schema validate <schema-name>` and confirm the command reports successful validation
-
