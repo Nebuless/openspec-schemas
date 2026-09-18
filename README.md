@@ -70,6 +70,12 @@ OpenSpec remains responsible for schema validation, artifact instructions, and
 workflow lifecycle. This package supplies schema files and optional companion
 resources.
 
+To change the schema for work that hasn't started or is already in progress,
+keep the project default separate from the change-local pinned schema. Completed
+changes stay historical; start a new change with the new schema. See
+[Changing a Change's Schema](./AGENT_INSTALL.md#changing-a-changes-schema) for
+the dry-run and apply workflow.
+
 ## Package Scope
 
 Schema folders are self-contained and copyable. Each contains:

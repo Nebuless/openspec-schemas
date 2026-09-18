@@ -130,6 +130,34 @@ The root install guidance SHALL state that schema packages declare companion ski
 - **WHEN** the root `README.md` update is applied
 - **THEN** `openspec schema validate` continues to pass for every packaged schema as a sanity check
 
+### Requirement: Repository SHALL document change-local schema selection
+The repository SHALL distinguish the project default in `openspec/config.yaml` from the schema pinned by an existing change in its `.openspec.yaml`. Root guidance SHALL stay concise and link to `AGENT_INSTALL.md` for the complete `set-change-schema <change> <schema> [-t|--target <project>] [--apply] [--allow-incompatible]` workflow, while `CONTRIBUTING.md` SHALL document the local maintainer command.
+
+#### Scenario: User previews a schema change before mutation
+- **GIVEN** an incomplete change pins a schema in its `.openspec.yaml`
+- **WHEN** the user runs `set-change-schema <change> <schema>` without `--apply`
+- **THEN** the command reports compatibility and the planned mutation
+- **AND** it does not mutate any file
+
+#### Scenario: User applies a compatible schema change
+- **GIVEN** the destination schema is already installed
+- **WHEN** the user runs `set-change-schema <change> <schema> --apply`
+- **THEN** only the selected change's `.openspec.yaml` is updated
+- **AND** `openspec/config.yaml`, installed schemas, and artifact files remain unchanged
+- **AND** no artifact is migrated automatically
+
+#### Scenario: User accepts an incompatible artifact graph
+- **GIVEN** the source and destination schemas have different artifact graphs
+- **WHEN** the user applies the schema change
+- **THEN** the command requires explicit `--allow-incompatible`
+- **AND** the user remains responsible for reconciling existing artifacts with the destination schema
+
+#### Scenario: Completed change keeps its historical schema
+- **GIVEN** a change is complete
+- **WHEN** the user wants subsequent work to use another schema
+- **THEN** the completed change remains unchanged under its pinned schema
+- **AND** the user creates a new change under the new schema
+
 ### Requirement: Schema changes SHALL be validated with OpenSpec CLI
 Any new schema or schema modification in this repository SHALL be verified by running `openspec schema validate <schema-name>` before considering the change complete.
 

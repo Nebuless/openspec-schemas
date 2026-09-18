@@ -44,6 +44,41 @@ nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebules
 Install syntax is `install <schema> [-t|--target <dir>] [-sk|--skills]
 [-a|--agents <host>] [--agent <host>] [--host <host>] [-i|--activate] [--force]`.
 
+## Changing a Change's Schema
+
+`openspec/config.yaml` sets the project default for new changes. An existing
+change pins its schema in that change's `.openspec.yaml`; changing the project
+default doesn't change the pinned schema.
+
+Install the destination schema first if the project doesn't already have it.
+Then preview the change-local update from the project directory:
+
+```bash
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas set-change-schema <change> <schema> -t .
+```
+
+The command is a dry run unless `--apply` is present. It reports compatibility
+and planned mutation without changing files. Apply a compatible update with:
+
+```bash
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas set-change-schema <change> <schema> -t . --apply
+```
+
+Syntax is `set-change-schema <change> <schema> [-t|--target <project>]
+[--apply] [--allow-incompatible]`.
+
+Use this flow before implementation or during an active change. The command
+never migrates artifacts automatically. With `--apply`, it updates only the
+change's `.openspec.yaml`; it doesn't edit `openspec/config.yaml`, install a
+schema, or rewrite artifact files. If source and destination artifact graphs
+don't match, review the reported differences and pass `--allow-incompatible`
+explicitly with `--apply`. Then reconcile existing artifacts yourself against
+the destination schema.
+
+Don't rewrite a completed change. It remains historical under its pinned
+schema. Install or activate the desired project default as needed, then create
+a new change under that schema.
+
 Stop after successful package installation. Use the remaining steps only for
 an unreleased branch, fork, or local checkout.
 

@@ -64,13 +64,18 @@ node bin/openspec-schemas.js list
 node bin/openspec-schemas.js validate <schema-name>
 node bin/openspec-schemas.js verify
 node bin/openspec-schemas.js install <schema-name> -t /path/to/project -i
+node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project
+node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project --apply
 ```
 
 `list` works without OpenSpec. `validate`, `verify`, and `install` require an
 installed OpenSpec CLI. Use `validate <schema-name>` for one changed schema;
 `verify` remains the compatibility check for every packaged schema. Published
 usage is Nub-first. See [`AGENT_INSTALL.md`](./AGENT_INSTALL.md) for package
-installation, optional skills and adapters, and local fallback details.
+installation, change-local schema updates, optional skills and adapters, and
+local fallback details. `set-change-schema` is a dry run by default. Applying
+updates only the selected change's `.openspec.yaml`; incompatible artifact
+graphs require explicit `--allow-incompatible`.
 
 ## Local Quality And Opt-In Hooks
 
