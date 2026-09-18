@@ -1,6 +1,6 @@
 {
   "name": "@nebulesstech/openspec-schemas",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Copyable OpenSpec workflow schemas and optional companion adapters",
   "license": "MIT",
   "repository": {

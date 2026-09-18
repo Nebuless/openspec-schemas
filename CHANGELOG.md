@@ -7,12 +7,28 @@ All notable changes will be documented here using
 
 ### Added
 
-- Add project DOX guidance hierarchy.
+- No changes yet.
+- Add change-local schema switching with dry-run, compatibility checks, and explicit apply controls.
 
 ### Changed
 
 - Manage project tooling with Nub, make `nub dlx` primary package runner, document schema-level `validate`, retain all-schema `verify` compatibility, and expose install option aliases.
 - Restructure root documentation around a concise user entrypoint with linked agent, contributor, and schema-specific guides.
+
+### Fixed
+
+- No changes yet.
+
+## [0.1.8] - 2026-09-18
+
+### Added
+
+- Add guarded `set-change-schema` CLI support for existing OpenSpec changes.
+- Add project DOX guidance hierarchy.
+
+### Changed
+
+- No changes yet.
 
 ### Fixed
 
@@ -48,5 +64,6 @@ All notable changes will be documented here using
 ### Fixed
 
 [Unreleased]: https://github.com/Nebuless/openspec-schemas/commits/HEAD
+[0.1.8]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.8
 [0.1.7]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.6
