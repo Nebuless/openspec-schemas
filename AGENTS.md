@@ -8,7 +8,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 
 | Area | Owner | Notes |
 |---|---|---|
-| Public install/release docs | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; beta `0.1.7`, latest `0.1.5`. |
+| Public install/release docs and CLI | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; beta `0.1.7`, latest `0.1.5`. Root README stays concise; AGENT_INSTALL owns change-local schema procedures. |
 | Installers, lint, test | `scripts/` | Portable core; CI and hooks delegate here. |
 | Schema packages | `openspec/schemas/` | Self-contained publishable directories. |
 | Canonical Compound commands | `openspec/schemas/compound-intent-driven/adapters/shared/` | Host paths are projections. |
@@ -21,6 +21,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 - Update relevant docs and an explicit `CHANGELOG.md` Unreleased entry.
 - Commit subject: `type(optional-scope): lower-case description`, max 72 chars.
 - Installer safety is contract: preflight collisions, reject symlinks, and let `--force` replace declared targets only.
+- Change-local schema updates dry-run by default, mutate only `.openspec.yaml` with `--apply`, and require `--allow-incompatible` for graph mismatches.
 - `.omo/` and generated `.qlty` state are local. Never edit, package, lint, or commit them.
 - No CE-native plan/tracker or automatic commits, branches, pushes, issues, PRs, or OpenSpec stage advancement.
 
