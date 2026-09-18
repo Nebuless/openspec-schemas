@@ -18,14 +18,17 @@ artifacts:
       Write proposal.md using the template. It MUST establish the problem,
       desired outcome, scope boundaries, chosen approach and trade-offs,
       observable success signals, and capabilities whose behavior will be
-      specified. Capabilities are the contract with the specs artifact: every
-      named capability requires specs/<capability>/spec.md. Preserve decisions
+      specified. Define is complete only after proposal.md and concrete specs
+      are written: every named capability requires a non-empty
+      specs/<capability>/spec.md through the specs artifact. Preserve decisions
       already settled by the user; do not invent implementation details.
 
       Before finalizing, check whether a repository learning store (normally
       docs/solutions/) contains relevant constraints, root causes, or rejected
       approaches. Cite applicable learnings under Prior Learning. State None
       when no relevant learning exists. Do not create a learning at this stage.
+      End with the exact next OpenSpec command, or the blocking condition when
+      no command is safe.
     requires: []
   - id: specs
     generates: specs/**/*.md
@@ -54,7 +57,8 @@ artifacts:
 
       Specs define acceptance conditions for planning and review. Do not add a
       test framework or an executable-spec harness unless the repository
-      already owns one.
+      already owns one. End with the exact next OpenSpec command, or the
+      blocking condition when no command is safe.
     requires:
       - proposal
   - id: design
@@ -69,16 +73,17 @@ artifacts:
 
       Write design.md using the template. It MUST preserve proposal scope and
       specs, state technical decisions with alternatives, identify affected
-      seams and interfaces, name stable implementation units (U1, U2, ...),
-      order their dependencies, identify their likely files or integration
-      points, and give each unit an observable verification scenario. Unit IDs
-      never renumber after creation. Include explicit non-goals, risks, and
-      unresolved blockers.
+       seams and interfaces, and name stable implementation units (U1, U2, ...).
+       Each unit records its batch, architectural layer, dependency order,
+       allowed path claims, observable proof, and continuation condition. Unit
+       IDs never renumber after creation. Include explicit non-goals, risks,
+       and unresolved blockers.
 
       Read existing repository-level ADRs before planning. Honor currently
       in-force ADRs and flag a conflict for the ADR artifact; do not rewrite
       accepted ADRs here. Do not implement or run behavior-changing experiments
-      during this artifact.
+      during this artifact. End with the exact next OpenSpec command, or the
+      blocking condition when no command is safe.
     requires:
       - proposal
   - id: adr
@@ -97,6 +102,8 @@ artifacts:
       one. A changed decision requires a new ADR under <repo>/adr/ with an
       incremented NNNN filename and a Supersedes field naming the prior ADR.
       If no decision clears this bar, say so explicitly in the manifest.
+      End with the exact next OpenSpec command, or the blocking condition when
+      no command is safe.
     requires:
       - design
   - id: tasks
@@ -108,12 +115,13 @@ artifacts:
       Use numbered headings and `- [ ] X.Y` checkboxes exactly; OpenSpec tracks
       those checkboxes during apply.
 
-      Each task MUST be a vertical slice that maps to one or more stable U-IDs,
-      names its behavior or integration boundary, and includes its targeted
-      verification command, test, or reproducible scenario. Do not create
+      Each task MUST be a vertical slice that maps to one or more stable U-IDs.
+      Put batch, layer, path claim, proof, and continuation metadata in prose
+      directly below the checkbox, never inside checkbox text. Do not create
       horizontal plumbing tasks, generic review tasks, or tracker-only tasks.
       Include strict change validation when behavior specs change and schema
-      validation when this schema changes.
+      validation when this schema changes. End with the exact next OpenSpec
+      command, or the blocking condition when no command is safe.
     requires:
       - specs
       - adr
@@ -127,13 +135,23 @@ apply:
     applicable durable learnings before changing code. Treat proposal and
     design decisions as guardrails, not scripts.
 
-    Work each unchecked task in dependency order:
+    The outer loop selects one ready unchecked task at a time. It may assign
+    that task to one bounded worker. Before assignment, verify path isolation,
+    task dependencies, repository instructions, and ownership of any existing
+    worktree. A worktree is optional and may be used only when it was
+    pre-created and remains owned by the outer loop. Workers never create or
+    manage worktrees, branches, commits, pushes, pull requests, OpenSpec stages,
+    or a separate tracker.
+
+    Work each selected task in dependency order:
 
     1. Implement (ce-work): establish the task's targeted proof before changing
        behavior when feasible, follow repository patterns, make the smallest
-       correct change, run the named verification, and mark the checkbox only
-       after it passes. For a reported bug, reproduce before fixing and confirm
-       the reproduction passes afterward.
+       correct change within its path claim, run the named proof, and mark the
+       checkbox only after it passes. For a reported bug, reproduce before
+       fixing and confirm the reproduction passes afterward. If the task cannot
+       be completed safely in the worker context, return continuation evidence
+       without checking the task; the outer loop resumes the same task.
 
     2. Simplify (ce-simplify-code): after a coherent code unit settles, inspect
        only its changed scope for existing reuse, dead weight, unclear structure,
@@ -158,4 +176,7 @@ apply:
        rediscovery. Otherwise record no learning.
 
     Completion requires every task checked, required validation passing, and no
-    unaddressed review finding or blocker.
+    unaddressed review finding or blocker. Every worker and outer-loop return
+    MUST include completed scope, proof, changed paths, continuation or blocker,
+    refreshed OpenSpec status, and the exact next OpenSpec command. OpenSpec
+    remains authority for artifacts, task state, stage readiness, and lifecycle.

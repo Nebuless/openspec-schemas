@@ -12,6 +12,7 @@ All notable changes will be documented here using
 
 ### Changed
 
+- Upgrade the Compound intent-driven schema contract with concrete define specs, stable execution-envelope fields, bounded one-task workers, checked outer-owned worktree isolation, continuation handoffs, and universal next-command reporting while OpenSpec remains lifecycle authority.
 - Manage project tooling with Nub, make `nub dlx` primary package runner, document schema-level `validate`, retain all-schema `verify` compatibility, and expose install option aliases.
 - Restructure root documentation around a concise user entrypoint with linked agent, contributor, and schema-specific guides.
 

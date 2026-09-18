@@ -36,3 +36,6 @@
 
 ## Impact
 <!-- Affected code, APIs, systems, dependencies, risks, or migration surfaces. -->
+
+## Next Handoff
+<!-- Exact next OpenSpec command, or blocking condition when no command is safe. -->

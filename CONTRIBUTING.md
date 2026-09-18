@@ -140,3 +140,4 @@ Current registry state: `0.1.7` is `beta`; `0.1.5` is `latest`. For the next bet
 - `templates/` contains templates for every artifact declared in `schema.yaml`
 - Schema README added/updated if appropriate
 - Any repo docs that reference contributing are updated to point to this guide
+- Compound envelope changes keep OpenSpec authoritative, keep task checkbox text parser-safe, and preserve adapter bans on lifecycle management and repository side effects

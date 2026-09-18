@@ -18,3 +18,7 @@ ADR review completed for this change.
 <!-- Replace with every repository-level ADR created for this change. Do not duplicate full Context, Decision, or Consequences content here. -->
 
 - None - no major durable architectural decisions were introduced.
+
+## Next Handoff
+
+<!-- Exact next OpenSpec command, or blocking condition when no command is safe. -->
