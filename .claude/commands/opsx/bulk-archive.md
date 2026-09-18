@@ -16,6 +16,8 @@ This skill allows you to batch-archive changes, handling spec conflicts intellig
 
 **Steps**
 
+For each change, CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and concrete `existingOutputPaths` govern artifact access, never guessed paths. Specs require non-empty `<changeRoot>/specs/<capability>/spec.md`, not empty directories. Missing metadata blocks that change. Main-spec paths below belong to the CLI-selected planning home, not necessarily cwd.
+
 1. **Get active changes**
 
    Run `openspec list --json` to get all active changes.

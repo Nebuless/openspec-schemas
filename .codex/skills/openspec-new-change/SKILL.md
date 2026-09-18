@@ -14,6 +14,8 @@ Start a new change using the experimental artifact-driven approach.
 
 **Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
+Use returned CLI `changeRoot`, `artifactPaths`, and `resolvedOutputPath`, never guessed paths. `generates` is relative to `changeRoot`; `specs/**/*.md` means non-empty `<changeRoot>/specs/<capability>/spec.md` files, not literal globs or empty directories. Explain this when handing off instructions; do not create artifacts during new-change. Missing metadata blocks handoff.
+
 **Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.
 
 **Steps**

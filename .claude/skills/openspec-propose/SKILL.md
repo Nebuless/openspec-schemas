@@ -70,7 +70,7 @@ When ready to implement, run /opsx:apply
         - `resolvedOutputPath`: Resolved path or pattern to write the artifact
         - `dependencies`: Completed artifacts to read for context
       - Read any completed dependency files for context
-      - Create the artifact file using `template` as the structure and write it to `resolvedOutputPath`
+      - Use `template` for content. Write a non-empty file at `resolvedOutputPath` when concrete; for a glob, write matching concrete files under CLI `changeRoot` as specified below.
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"
 
@@ -97,6 +97,8 @@ After completing all artifacts, summarize:
 - Prompt: "Run `/opsx:apply` or ask me to implement to start working on the tasks."
 
 **Artifact Creation Guidelines**
+
+- CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and concrete dependency paths are authoritative. Resolve relative `generates` under `changeRoot`, never cwd. For `specs/**/*.md`, create non-empty `<changeRoot>/specs/<capability>/spec.md` for each approved capability; never a literal glob or empty directory. Verify contents and refreshed `existingOutputPaths` and status before completion. Missing metadata blocks work; never guess paths.
 
 - Follow the `instruction` field from `openspec instructions` for each artifact type
 - The schema defines what each artifact should contain - follow it

@@ -82,6 +82,8 @@ Do not use this skill when the user explicitly targeted one change for `/opsx-ap
 
 ## Guardrails
 
+- Each worker must read CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and concrete `existingOutputPaths`/`contextFiles` in its own workspace. Never reconstruct a change root from a branch or cwd. Required specs need non-empty `<changeRoot>/specs/<capability>/spec.md` files, not empty directories. Missing metadata blocks that worker; preserve store selection.
+
 - Do not auto-merge
 - Do not auto-archive
 - Do not bulk-apply when only one candidate change remains

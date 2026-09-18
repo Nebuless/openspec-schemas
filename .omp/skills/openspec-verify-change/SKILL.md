@@ -18,6 +18,8 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
 **Steps**
 
+Use CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and `contextFiles`, never guessed paths. Read concrete `existingOutputPaths`; required specs need non-empty `<changeRoot>/specs/<capability>/spec.md` files, not empty directories. Missing metadata or required files is a verification finding, never evidence of completion.
+
 1. **If no change name provided, prompt for selection**
 
    Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.

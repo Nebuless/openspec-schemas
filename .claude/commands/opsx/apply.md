@@ -14,6 +14,8 @@ Implement tasks from an OpenSpec change.
 
 **Steps**
 
+Use CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and `contextFiles`, never guessed paths. Read concrete `existingOutputPaths`; required specs need non-empty `<changeRoot>/specs/<capability>/spec.md` files, not empty directories. Missing metadata or required files blocks work.
+
 1. **Select the change**
 
    If a name is provided, use it. Otherwise:

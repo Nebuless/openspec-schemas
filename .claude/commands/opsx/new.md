@@ -14,6 +14,8 @@ Start a new change using the experimental artifact-driven approach.
 
 **Steps**
 
+Use returned CLI `changeRoot`, `artifactPaths`, and `resolvedOutputPath`, never guessed paths. `generates` is relative to `changeRoot`; `specs/**/*.md` means non-empty `<changeRoot>/specs/<capability>/spec.md` files, not literal globs or empty directories. Explain this when handing off instructions; do not create artifacts during new-change. Missing metadata blocks handoff.
+
 1. **If no input provided, ask what they want to build**
 
    Use the **AskUserQuestion tool** (open-ended, no preset options) to ask:

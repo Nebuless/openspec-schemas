@@ -82,6 +82,8 @@ Depending on what the user brings, you might:
 
 You have full context of the OpenSpec system. Use it naturally, don't force it.
 
+For selected changes, CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and concrete `existingOutputPaths` are path authority. `specs/**/*.md` means non-empty `<changeRoot>/specs/<capability>/spec.md` files, never empty directories. Missing metadata blocks artifact access; do not guess paths. This rule grants no new write permission in explore mode.
+
 ### Check for context
 
 At the start, quickly check what exists:

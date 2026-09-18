@@ -14,6 +14,8 @@ Archive a completed change in the experimental workflow.
 
 **Steps**
 
+CLI `changeRoot`, `artifactPaths`, `resolvedOutputPath`, and concrete `existingOutputPaths` govern artifact access, never guessed paths. Specs require non-empty `<changeRoot>/specs/<capability>/spec.md`, not empty directories. Missing metadata blocks work. Main-spec paths below are relative to the CLI-selected planning home, not necessarily cwd.
+
 1. **If no change name provided, prompt for selection**
 
    Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.

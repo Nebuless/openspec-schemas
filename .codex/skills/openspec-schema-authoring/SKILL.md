@@ -81,6 +81,7 @@ Create or customize an OpenSpec workflow schema in this repository.
 - `openspec schema validate <schema-name>` passes.
 
 **Guardrails**
+- `generates` paths resolve relative to CLI `changeRoot`. Teach agents to use `artifactPaths`, `resolvedOutputPath`, and concrete dependency paths from status/instructions; missing metadata blocks work. `specs/**/*.md` requires non-empty `<changeRoot>/specs/<capability>/spec.md` files, never a literal glob or empty directory. Verify refreshed `existingOutputPaths` and status. Template source paths are not artifact output paths.
 - Prefer `openspec schema fork` over manual copying.
 - Keep schemas repository-local under `openspec/schemas/`.
 - Do not skip validation before considering work complete.
