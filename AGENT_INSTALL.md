@@ -243,4 +243,9 @@ OpenSpec remains in charge of artifact status, instructions, task tracking,
 validation, and lifecycle transitions. Adapters prohibit separate CE plans,
 trackers, commits, branches, pushes, issues, PRs, and automatic stage selection
 or advancement. Planning requires a selected ready artifact, work a selected
-task; settled artifact scope is reused rather than asked again.
+task; settled artifact scope is reused rather than asked again. Planning records
+stable unit, batch, layer, path claim, proof, and continuation fields. Work may
+use an optional pre-created, outer-owned worktree only after dependency, path
+isolation, repository-instruction, and ownership checks. Adapters and bounded
+workers don't manage worktrees. Every handoff names the exact next OpenSpec
+command, or the blocking condition when no command is safe.
