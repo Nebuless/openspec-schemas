@@ -7,7 +7,7 @@ All notable changes will be documented here using
 
 ### Added
 
-- No changes yet.
+- Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.
 - Add change-local schema switching with dry-run, compatibility checks, and explicit apply controls.
 
 ### Changed

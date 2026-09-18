@@ -17,11 +17,16 @@ The repository SHALL organize custom OpenSpec schemas as one folder per schema, 
 - **AND** repository catalog documentation no longer advertises that schema until the replacement is archived.
 
 ### Requirement: Each schema SHALL declare companion skills in a manifest
-Each schema folder SHALL contain a `skills.txt` manifest listing its companion skills, one skill name per line and nothing else, where every listed name exactly matches a directory under `.agents/skills/` in https://github.com/intent-driven-dev/skills. Because the manifest lives inside the schema folder, copying the schema carries the manifest into the target project.
+Each schema folder SHALL contain a `skills.txt` manifest listing one companion skill per line. A line SHALL use one of these forms:
 
-Affected schemas:
-- `behaviour-driven` (`openspec/schemas/behaviour-driven/`)
-- `intent-driven` (`openspec/schemas/intent-driven/`)
+```text
+<skill-name>
+<github-owner/repository><TAB><repository-relative-skill-directory>
+```
+
+A legacy `<skill-name>` SHALL be one path component and SHALL resolve from `.agents/skills/<skill-name>` in https://github.com/intent-driven-dev/skills. A source-qualified line SHALL use one literal tab, identify a GitHub repository as `<github-owner/repository>`, and identify a complete skill directory by a safe repository-relative path. The destination name SHALL be the final path component, and destination names SHALL be unique within one manifest. A manifest MAY mix legacy and source-qualified lines.
+
+The manifest identifies repository and path only. It does not encode a Git ref or commit SHA; installation resolves the repository's default checkout. README provenance SHAs describe researched snapshots rather than pinned installation revisions. Because the manifest lives inside the schema folder, copying the schema carries the manifest into the target project.
 
 #### Scenario: All packaged schemas declare their skills
 - **WHEN** a user inspects any schema folder under `openspec/schemas/`
@@ -29,12 +34,25 @@ Affected schemas:
   - `minimalist`: `openspec-git-discipline`
   - `behaviour-driven`: `acceptance-test-authoring`, `gherkin-authoring`, `glossary`, `openspec-git-discipline`, `spec-as-source`
   - `intent-driven`: `acceptance-test-authoring`, `architectural-decision-records`, `c4-diagrams`, `gherkin-authoring`, `glossary`, `grill-me`, `openspec-git-discipline`, `spec-as-source`
+  - `intent-driven-design`: `impeccable`, `grill-me`, `grill-with-docs`, `grilling`, `domain-modeling`
   - `spec-driven-with-adr`: `architectural-decision-records`, `openspec-git-discipline`
   - `event-driven`: `c4-diagrams`, `glossary`, `openspec-git-discipline`
 
-#### Scenario: Manifest names resolve in the canonical skills repository
-- **WHEN** the skills repository is freshly cloned
-- **THEN** every name in every `skills.txt` exactly matches a directory under `.agents/skills/` in that clone
+#### Scenario: Legacy manifest names remain compatible
+- **GIVEN** a manifest line contains one bare `<skill-name>`
+- **WHEN** the companion skill installer resolves the declaration
+- **THEN** it resolves `.agents/skills/<skill-name>` from https://github.com/intent-driven-dev/skills
+
+#### Scenario: Source-qualified manifest entries resolve in their declared repository
+- **GIVEN** a manifest line contains `<github-owner/repository><TAB><repository-relative-skill-directory>` with one literal tab
+- **WHEN** the companion skill installer resolves the declaration
+- **THEN** it resolves the complete repository-relative skill directory from that declared GitHub repository's default checkout
+- **AND** it installs the directory under the final path component
+- **AND** no Git ref or commit SHA is inferred from the manifest
+
+#### Scenario: Manifest declarations have unique destinations
+- **WHEN** two manifest lines resolve to the same final path component
+- **THEN** installation fails before target mutation
 
 #### Scenario: Retired skills are not listed
 - **WHEN** a user inspects any `skills.txt` under `openspec/schemas/`
@@ -42,12 +60,12 @@ Affected schemas:
 - **AND** the schemas that previously listed it list `spec-as-source` instead.
 
 ### Requirement: Schema READMEs SHALL document associated skills
-Each schema README SHALL include an "Associated Skills" section listing exactly the skills from that schema's `skills.txt` with a one-line purpose each, linking to https://github.com/intent-driven-dev/skills, and noting that the skills are installed automatically by the install guide's skills step into `.agents/skills/`. The `spec-driven-with-adr` README SHALL point ADR skill references at the canonical skills repository rather than the retired `intent-driven-template` location and SHALL NOT list schema/skill packaging as pending.
+Each schema README SHALL include an "Associated Skills" section listing exactly the skills from that schema's `skills.txt` with a one-line purpose each and noting that the skills are installed automatically by the install guide's skills step into `.agents/skills/`. Each legacy skill SHALL link to its directory in https://github.com/intent-driven-dev/skills. Each source-qualified skill SHALL link to its directory in its owning source repository. The `spec-driven-with-adr` README SHALL point ADR skill references at the canonical skills repository rather than the retired `intent-driven-template` location and SHALL NOT list schema/skill packaging as pending.
 
 #### Scenario: Reader learns a schema's companion skills from its README
 - **WHEN** a user reads the "Associated Skills" section of a schema README
 - **THEN** it lists exactly the skills from that schema's `skills.txt`, each with a one-line purpose
-- **AND** it links to https://github.com/intent-driven-dev/skills
+- **AND** each skill links to its owning source repository
 - **AND** it notes automatic installation into `.agents/skills/` via the install guide
 
 #### Scenario: spec-driven-with-adr README points at the canonical skills repo

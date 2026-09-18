@@ -24,6 +24,25 @@ write_manifest() {
 [ -x "$INSTALLER" ] || fail "installer must be executable"
 TAB=$(printf '\t')
 
+EXPECTED_MANIFEST=$TMP/intent-driven-design-skills.txt
+printf '%s\n' \
+	"pbakaus/impeccable${TAB}.agents/skills/impeccable" \
+	"mattpocock/skills${TAB}skills/productivity/grill-me" \
+	"mattpocock/skills${TAB}skills/engineering/grill-with-docs" \
+	"mattpocock/skills${TAB}skills/productivity/grilling" \
+	"mattpocock/skills${TAB}skills/engineering/domain-modeling" >"$EXPECTED_MANIFEST"
+cmp -s "$EXPECTED_MANIFEST" "$ROOT/openspec/schemas/intent-driven-design/skills.txt" ||
+	fail "intent-driven-design manifest must contain the exact five source-qualified baseline skills"
+
+PACKAGING_SPEC=$ROOT/openspec/specs/custom-schema-packaging/spec.md
+grep -Fq '<skill-name>' "$PACKAGING_SPEC" || fail "canonical contract must retain legacy bare names"
+grep -Fq '<github-owner/repository><TAB><repository-relative-skill-directory>' "$PACKAGING_SPEC" ||
+	fail "canonical contract must permit source-qualified entries"
+grep -Fq 'owning source repository' "$PACKAGING_SPEC" ||
+	fail "canonical contract must require source-specific README links"
+grep -Fq 'does not encode a Git ref or commit SHA' "$PACKAGING_SPEC" ||
+	fail "canonical contract must state manifest revision limitation"
+
 # Source-aware installation clones two sources and preserves full directories.
 SOURCE_AWARE=$TMP/source-aware
 write_manifest "$SOURCE_AWARE" "intent-driven-dev/skills${TAB}.agents/skills/gherkin-authoring
@@ -61,6 +80,14 @@ if "$INSTALLER" "$MALFORMED" "$TMP/malformed-target"; then
 	fail "malformed declaration succeeded"
 fi
 [ ! -e "$TMP/malformed-target" ] || fail "malformed declaration mutated target"
+
+DUPLICATE=$TMP/duplicate
+write_manifest "$DUPLICATE" "owner/first${TAB}skills/grilling
+owner/second${TAB}other/grilling"
+if "$INSTALLER" "$DUPLICATE" "$TMP/duplicate-target"; then
+	fail "duplicate destination declaration succeeded"
+fi
+[ ! -e "$TMP/duplicate-target" ] || fail "duplicate declaration mutated target"
 
 # --force refuses a non-directory collision before replacing any declared skill.
 rm -rf "$TMP/target/.agents/skills/grilling"

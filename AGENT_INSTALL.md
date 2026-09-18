@@ -1,6 +1,6 @@
 # Agent Install Guide
 
-Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project. The repository currently includes `intent-driven`, `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, `behaviour-driven`, `spec-driven-with-adr`, `event-driven`, and `minimalist` schemas; the clone is authoritative if that list changes.
+Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project. The repository currently includes `intent-driven`, `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, `intent-driven-design`, `behaviour-driven`, `spec-driven-with-adr`, `event-driven`, and `minimalist` schemas; the clone is authoritative if that list changes.
 
 ## Prerequisites
 
@@ -136,6 +136,7 @@ schema: <schema-name>
 Also update the `rules` keys to match the artifact IDs in the schema's `schema.yaml` (`artifacts[].id`). For example:
 
 - `intent-driven` uses `proposal`, `specs`, `design`, `adr`, and `tasks` → set those as `rules` keys
+- `intent-driven-design` uses `journey`, `proposal`, `specs`, `design`, `adr`, and `tasks`; its exact graph is `journey -> proposal -> (specs, design) -> adr -> tasks`
 - Check `openspec/schemas/<schema-name>/schema.yaml` (`artifacts[].id`) for the exact IDs of your chosen schema
 
 Some schemas require additional `openspec/config.yaml` keys. Check the chosen
@@ -226,6 +227,13 @@ inside it. The installer validates all declarations and source paths before
 mutating the target, and clones each unique source repository once. A schema
 may mix legacy and source-qualified lines; duplicate destination skill names
 are rejected.
+
+For `intent-driven-design`, the source-qualified manifest installs these five
+baseline skill directories: `impeccable`, `grill-me`, `grill-with-docs`,
+`grilling`, and `domain-modeling`. The specialist routes in its schema README
+remain on demand and are not declared in `skills.txt`; install only routes the
+user approves after checking their source, license, host compatibility, and
+collision policy.
 
 `intent-driven-superpowers` combines skills from
 `intent-driven-dev/skills`, `mattpocock/skills`, and `obra/superpowers`. Install

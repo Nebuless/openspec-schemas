@@ -47,6 +47,7 @@ nub run check --require-qlty
 | `compound-intent-driven/adapters/shared/AGENTS.md` | Canonical adapter guidance and projection parity. |
 | `event-driven/` | Event-storming, event-modeling, AsyncAPI workflow. |
 | `intent-driven/` | Behavior-driven workflow with ADRs. |
+| `intent-driven-design/` | Discovery-led journey, design, ADR, and delivery workflow. |
 | `intent-driven-engineering/` | Source-aware companion skill workflow. |
 | `intent-driven-superpowers/` | Superpowers companion skill workflow. |
 | `minimalist/` | Small scope specs-to-tasks workflow. |
