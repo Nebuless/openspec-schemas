@@ -9,6 +9,7 @@ All notable changes will be documented here using
 
 - Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.
 - Add change-local schema switching with dry-run, compatibility checks, and explicit apply controls.
+- Add schema-declared read-only MCP catalog installs with generic `--mcp` selection and safe host configuration.
 
 ### Changed
 

@@ -16,7 +16,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 
 ## Local Contracts
 
-- Schema packages contain `schema.yaml`, `README.md`, `skills.txt`, and matching templates.
+- Schema packages contain `schema.yaml`, `README.md`, `skills.txt`, optional strict `mcp.yaml` catalogs, and matching templates.
 - Run `nub run test`, `nub run check --require-qlty`, and schema validation for changed schemas.
 - Update relevant docs and an explicit `CHANGELOG.md` Unreleased entry.
 - Commit subject: `type(optional-scope): lower-case description`, max 72 chars.
@@ -59,6 +59,10 @@ Public usage is Nub-first. `-a|--agents` accepts only `opencode`, `senpi`,
 `pi`, or `atomic` and requires `compound-intent-driven`; `--agent` and `--host`
 remain compatibility aliases. Keep local `node bin/openspec-schemas.js` commands for
 maintainers and shell installers for local or unreleased fallback only.
+With `--mcp`, selectors instead choose `atomic`, `omp`, `opencode`, or `pi`;
+MCP installs never run Compound adapters. Host config preflight precedes all
+mutations, Pi is guided-only, and OpenCode JSONC is accepted only when JSON or
+empty/new so comments are never stripped.
 
 ## Verification
 

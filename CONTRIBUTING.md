@@ -64,6 +64,7 @@ node bin/openspec-schemas.js list
 node bin/openspec-schemas.js validate <schema-name>
 node bin/openspec-schemas.js verify
 node bin/openspec-schemas.js install <schema-name> -t /path/to/project -i
+node bin/openspec-schemas.js install intent-driven-design -t /path/to/project --mcp all -a opencode
 node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project
 node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project --apply
 ```

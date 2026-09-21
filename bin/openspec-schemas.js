@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const mcp = require('./mcp-config');
 const root = path.resolve(__dirname, '..');
 const schemas = path.join(root, 'openspec/schemas');
 const hosts = { opencode: '.opencode/commands', senpi: '.senpi/prompts', pi: '.pi/prompts', atomic: '.atomic/prompts' };
@@ -123,7 +124,7 @@ function setChangeSchema(args) {
 function main() {
   const [command, ...args] = process.argv.slice(2);
   if (command === '--help' || command === undefined) {
-    console.log('Usage: openspec-schemas list | validate [schema] | verify | install <schema> [-t|--target <dir>] [-sk|--skills] [-a|--agents <opencode|senpi|pi|atomic>] [--agent <agent>] [--host <agent>] [-i|--activate] [--force]');
+    console.log('Usage: openspec-schemas list | validate [schema] | verify | install <schema> [-t|--target <dir>] [-sk|--skills] [--mcp <all|name[,name...]>] [-a|--agents <host>] [--agent <host>] [--host <host>] [-i|--activate] [--force]');
     console.log('       openspec-schemas set-change-schema <change> <schema> [-t|--target <project>] [--apply] [--allow-incompatible]');
     return;
   }
@@ -152,6 +153,8 @@ function main() {
   let skills = false;
   let activate = false;
   let force = false;
+  let mcpSelector;
+  let mcpInstall;
   while (args.length) {
     const arg = args.shift();
     if (arg === '--target' || arg === '-t' || arg === '--host' || arg === '--agents' || arg === '--agent' || arg === '-a') {
@@ -165,6 +168,11 @@ function main() {
         if (host) throw new Error('duplicate option: agent');
         host = value;
       }
+    } else if (arg === '--mcp') {
+      const value = args.shift();
+      if (!value || value.startsWith('-')) throw new Error('missing value: --mcp');
+      if (mcpSelector) throw new Error('duplicate option: mcp');
+      mcpSelector = value;
     } else if (arg === '--skills' || arg === '-sk') {
       if (skills) throw new Error('duplicate option: skills');
       skills = true;
@@ -176,12 +184,16 @@ function main() {
       force = true;
     } else throw new Error(`unknown option: ${arg}`);
   }
-  if (host && (!Object.hasOwn(hosts, host) || name !== 'compound-intent-driven')) throw new Error('--host requires compound-intent-driven and a supported host');
   const source = path.join(schemas, name);
   const destination = path.join(target, 'openspec/schemas', name);
+  if (mcpSelector) {
+    mcpInstall = mcp.plan(target, source, mcpSelector, host, force);
+  } else if (host && (!Object.hasOwn(hosts, host) || name !== 'compound-intent-driven')) {
+    throw new Error('--host requires compound-intent-driven and a supported host');
+  }
   if (destination === source || source.startsWith(destination + path.sep)) throw new Error('source and destination overlap');
   collision(destination, force, true);
-  if (host) {
+  if (host && !mcpSelector) {
     for (const file of fs.readdirSync(path.join(root, hosts[host])).filter(file => /^opsx-ce-.*\.md$/.test(file))) {
       collision(path.join(target, hosts[host], file), force, false);
     }
@@ -213,9 +225,10 @@ function main() {
   fs.cpSync(source, destination, { recursive: true });
   const extra = force ? ['--force'] : [];
   if (skills) run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
-  if (host) run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
+  if (host && !mcpSelector) run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
   run('openspec', ['schema', 'validate', name], target);
   if (updated !== undefined) fs.writeFileSync(config, updated);
+  if (mcpInstall) mcp.write(mcpInstall);
   console.log(`Installed ${name} in ${destination}`);
 }
 try { main(); } catch (error) { console.error(`openspec-schemas: ${error.message}`); process.exitCode = 1; }

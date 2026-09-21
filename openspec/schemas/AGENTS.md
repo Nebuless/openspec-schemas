@@ -15,10 +15,13 @@ Schema directories own workflow artifact graphs, templates, companion skill decl
   schema.yaml
   README.md
   skills.txt
+  mcp.yaml
   templates/
 ```
 
 `skills.txt` may be empty. Every artifact declared by `schema.yaml` needs its declared template at the matching path.
+`mcp.yaml` is optional strict version `1` remote catalog metadata: unique
+lowercase-hyphen names, HTTPS endpoints, `readOnly: true`, and `auth: none`.
 
 ## Work Guidance
 

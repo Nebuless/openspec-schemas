@@ -10,7 +10,7 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 |---|---|---|
 | Schema skills | `install-schema-skills.sh` | Manifest preflight before clone/copy; source-qualified entries use literal tabs. |
 | Compound adapters | `install-compound-adapters.sh` | Exactly seven declared adapter files per supported host. |
-| Package CLI tests | `test-release.js` | Protect CLI collision, activation, change-local schema updates, package allowlist, and hook behavior. |
+| Package CLI tests | `test-release.js` | Protect CLI collision, activation, schema-local MCP catalogs, host detection/config safety, change-local schema updates, package allowlist, and hook behavior. |
 | Artifact layout | `test-artifact-layout.js` | Protect CLI-authoritative paths, concrete non-empty specs, all host guidance, and adapter projection parity. |
 | Quality | `quality.sh` | Runs tests, Markdown/changelog checks, every schema validation, Git whitespace, optional/required Qlty. |
 | Commit/changelog | `lint-*.js`, `update-changelog.js` | No dependencies; changelog edits are explicit. |
@@ -20,6 +20,7 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 - Shell: POSIX `sh`, `set -eu`, quote paths, support spaces, no Bash features.
 - Preflight all files before mutation. Reject unsafe links, overlap, malformed paths, and undeclared collisions.
 - `--force` replaces only declared regular targets; never delete unrelated files or follow symlinks.
+- MCP config preflight completes before schema copy; remote catalogs contain no auth, headers, secrets, or network calls.
 - `set-change-schema` dry-runs unless `--apply` is explicit, updates only the selected change's `.openspec.yaml`, and gates graph mismatches behind `--allow-incompatible`.
 - Tests may intentionally print expected installer errors. Assert exit status, safety, and no partial mutation.
 - Keep scripts executable when used as hooks/installers.
