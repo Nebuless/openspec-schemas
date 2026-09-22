@@ -11,6 +11,8 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 | Schema skills | `install-schema-skills.sh` | Manifest preflight before clone/copy; source-qualified entries use literal tabs. |
 | Compound adapters | `install-compound-adapters.sh` | Exactly seven declared adapter files per supported host. |
 | Package CLI tests | `test-release.js` | Protect CLI collision, activation, change-local schema updates, package allowlist, and hook behavior. |
+| Native handoff tests | `test-opsx-handoff.js` | Protect parser, OpenSpec authority, graph diff, metadata transaction, rollback, and packed CLI behavior. |
+| View runtime tests | `test-opsx-view.js`, `test-opsx-view-native.mjs` | Keep Node20-safe parser/preflight/spawn checks separate from supported Node26.4 FFI renderer smoke. |
 | Artifact layout | `test-artifact-layout.js` | Protect CLI-authoritative paths, concrete non-empty specs, all host guidance, and adapter projection parity. |
 | Quality | `quality.sh` | Runs tests, Markdown/changelog checks, every schema validation, Git whitespace, optional/required Qlty. |
 | Commit/changelog | `lint-*.js`, `update-changelog.js` | No dependencies; changelog edits are explicit. |
@@ -21,6 +23,8 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 - Preflight all files before mutation. Reject unsafe links, overlap, malformed paths, and undeclared collisions.
 - `--force` replaces only declared regular targets; never delete unrelated files or follow symlinks.
 - `set-change-schema` dry-runs unless `--apply` is explicit, updates only the selected change's `.openspec.yaml`, and gates graph mismatches behind `--allow-incompatible`.
+- `opsx-schema handoff` adds strict pre-authority parsing, active selected-change authority, deterministic graph diff output, detected-race checks, fresh-status postflight, and owned rollback; Node filesystem rename is not an atomic compare-and-swap primitive.
+- View behavior remains covered by the existing view test surfaces; Todo 10 production protocol/action changes are kept outside test files and verified by Sol.
 - Tests may intentionally print expected installer errors. Assert exit status, safety, and no partial mutation.
 - Keep scripts executable when used as hooks/installers.
 

@@ -1,11 +1,24 @@
 # Agent Install Guide
 
+Package core targets Node >=20; the locked full toolchain for OpenSpec requires
+Node.js >=20.19.0.
+
 Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project. The repository currently includes `intent-driven`, `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, `intent-driven-design`, `behaviour-driven`, `spec-driven-with-adr`, `event-driven`, and `minimalist` schemas; the clone is authoritative if that list changes.
 
 ## Prerequisites
 
 1. Run `openspec --version` in the target project. Confirm OpenSpec is installed and the CLI version is at least `1.0.0`.
 2. If `openspec --version` fails, reports a version below `1.0.0`, or `openspec/config.yaml` is missing, stop and tell the user to install or upgrade OpenSpec and run `openspec init` first. Do not continue until these prerequisites are met.
+
+`opsx-schema` reads source authority from the installed package and project state
+from OpenSpec metadata in the target project. Use `opsx-schema inspect --json`
+to read project state and `opsx-schema doctor --json` for diagnostics. These are
+read commands. They don't install, activate, migrate, or archive anything.
+
+Use explicit flags in agent runs. `--apply`, `--yes`, `--force`, and
+`--allow-incompatible` are opt-in controls, not implicit behavior. Keep JSON on
+stdout when a command supports `--json`; use its exit status and structured
+`diagnostics` field.
 
 ## Step 1 — Install from Published Package
 
@@ -23,13 +36,40 @@ nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebules
 The package-specific cooling-window exemption permits the selected beta while
 keeping Nub's release-age policy for all other packages. The package installer
 validates before mutation, refuses collisions unless `--force` is explicit, and
-does not install OpenSpec, host runtimes, or other dependencies. `verify`
+does not install OpenSpec or host runtimes; Nub or the package manager may
+resolve package-declared optional dependencies. `verify`
 remains a compatibility command that validates every bundled schema; prefer
 `validate <schema-name>` for one schema.
 
 ```bash
 nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas verify
 ```
+
+### Persistent Node 26 View Runtime
+
+The package core targets Node >=20 and can be installed with `--no-optional`
+when view is not needed. A persistent Node.js 26 view consumer must declare the
+package plus both pinned runtime dependencies before the first Nub install:
+
+```json
+{
+  "dependencies": {
+    "@nebulesstech/openspec-schemas": "0.1.8"
+  },
+  "optionalDependencies": {
+    "@opentui/core": "0.5.11",
+    "web-tree-sitter": "0.25.10"
+  }
+}
+```
+
+Keep the consumer lockfile and use `nub install --frozen` for repeat installs.
+A bare local tar Nub install may omit package optional edges. Schema-copy
+`nub dlx` does not create a persistent view runtime. Use
+`$(mise where node@26)/bin/node --experimental-ffi scripts/test-opsx-view-native.mjs`
+for the Node 26 runtime;
+unsupported or dependency-missing view falls back to `opsx-schema inspect --json`
+or `opsx-schema doctor`.
 
 Install Compound adapters by adding `-a <host>`:
 
@@ -63,6 +103,13 @@ and planned mutation without changing files. Apply a compatible update with:
 ```bash
 nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas set-change-schema <change> <schema> -t . --apply
 ```
+
+The native equivalent is `opsx-schema handoff <change> <schema>`. It uses
+OpenSpec list, status, and schema resolution as authority, reports graph
+differences, and changes only selected change metadata with `--apply`. It
+rejects completed, archived, external, and named-store changes. It doesn't
+rewrite artifacts or create archive records. `--allow-incompatible` acknowledges
+reported graph differences; it doesn't migrate artifacts.
 
 Syntax is `set-change-schema <change> <schema> [-t|--target <project>]
 [--apply] [--allow-incompatible]`.
@@ -153,16 +200,23 @@ Run:
 openspec schema validate <schema-name>
 ```
 
-Expected success output (example for the selected schema):
-
-```text
-Validation Results:
-✓ <schema-name>
-```
+Expected result: command exits with status 0 and reports the selected schema as valid. Exact output varies by OpenSpec CLI version.
 
 Replace `intent-driven` with the schema name you installed. If validation fails, report the error output to the user.
 
 ### Step 6 — Install Associated Skills
+
+Inspect profile resources before mutation:
+
+```bash
+opsx-schema skills inspect --schema <schema-name> --profile default --json
+opsx-schema skills doctor --json
+```
+
+Skill profiles are dry-run by default. Apply only after reviewing planned
+targets. Use `--force` only when replacing safe unmanaged directories at
+declared targets is approved. It never bypasses managed drift, symlink, or
+ownership checks. Existing files outside declared targets remain untouched.
 
 Check whether the installed schema declares associated skills. The manifest lives inside the schema directory you copied in Step 3:
 
@@ -206,7 +260,7 @@ The installer supports two `skills.txt` forms:
 Bare names remain compatible with existing schemas and resolve from `intent-driven-dev/skills/.agents/skills/<skill-name>`. Source-qualified lines let a schema declare a complete skill directory from another GitHub repository. The separator is one literal tab.
 
 - The installer clones each declared source repository once, validates every declaration before target mutation, then copies complete skill directories into `./.agents/skills/`.
-- If a target skill directory already exists, it stops without changing that directory. Ask the user whether to preserve it or explicitly replace only declared directories with `--force`. The installer refuses to replace an existing file at a skill path:
+  - If a target skill directory already exists, it stops without changing that directory. Ask the user whether to preserve it or explicitly replace only safe unmanaged directories at declared targets with `--force`. Managed drift, symlinks, ownership mismatches, and existing files at skill paths remain refusals:
 
   ```bash
   bash /tmp/openspec-schemas/scripts/install-schema-skills.sh \
@@ -265,9 +319,10 @@ adapter files cause refusal before mutation. After explicit replacement approval
 sh /tmp/openspec-schemas/scripts/install-compound-adapters.sh senpi . --force
 ```
 
-All sources and destinations are preflighted; force replaces only declared
-regular files, never directories, symlinks, or unrelated files. This installer
-is offline and installs no host runtime, OpenSpec CLI, or companion skills.
+All sources and destinations are preflighted; force replaces only declared safe
+unmanaged targets. It never bypasses managed drift, symlinks, ownership checks,
+or unrelated files. This adapter installer is local and installs no host
+runtime, OpenSpec CLI, or companion skills.
 
 Installed command/template surface:
 

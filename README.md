@@ -38,9 +38,11 @@ companion skill for fenced-Gherkin authoring and executable acceptance testing.
 
 ## Install a Schema
 
-Package source is version `0.1.8`. Registry tags remain `0.1.7` on `beta` and
-`0.1.5` on `latest`. Node >=20, Nub, and an initialized OpenSpec project are
-required.
+Package source is version `0.1.8`. Registry tags remain `0.1.7` on `beta` and `0.1.5` on `latest`. This source version is unreleased and not published. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
+required. `opsx-schema view` additionally requires Node.js >=26.4, Linux x64
+glibc, a non-dumb TTY, and the optional OpenTUI runtime. The package manifest
+retains `@opentui/core@0.5.11` and `web-tree-sitter@0.25.10` as optional
+dependencies for package-manager installs.
 
 Install and activate a schema from your project directory:
 
@@ -53,7 +55,64 @@ are optional. See the [agent install guide](./AGENT_INSTALL.md) for complete
 prerequisites, install choices, collision rules, skills, adapters, and local or
 unreleased fallback.
 
+## Inspect Project State
+
+`opsx-schema` is additive. Existing `openspec-schemas` commands remain
+compatible for schema listing, validation, installation, and verification.
+Use `opsx-schema` for project state and guarded operations:
+
+```sh
+opsx-schema inspect
+opsx-schema inspect --change <change-id> --json
+opsx-schema doctor --json
+opsx-schema skills inspect --schema <schema-name> --profile default --json
+opsx-schema handoff <change-id> <schema-name> --json
+```
+
+Read commands support `--json`. JSON writes one object to stdout with
+`schemaVersion`, `command`, `ok`, `data`, `diagnostics`, `mutations`, and
+`nextActions`. Errors use a nonzero exit status. Commands don't expose secrets,
+tokens, or unsafe hidden switches.
+
+Schema activation and skill changes are guarded. `opsx-schema enable` previews
+by default and needs `--yes` to update `openspec/config.yaml`. Skill install,
+enable, and disable preview by default and need `--apply`; `--force` only
+replaces safe unmanaged directories at declared targets and never bypasses
+managed drift, symlink, or ownership checks. `handoff` is a
+metadata-only dry run unless `--apply` is present, and incompatible graphs need
+`--allow-incompatible`.
+
+`opsx-schema view` is optional. Archived records are unavailable from its active snapshot. It requires stable Node.js >=26.4, Linux x64
+glibc, a non-dumb TTY, `--experimental-ffi`, and optional `@opentui/core` and
+`web-tree-sitter` dependencies. View is read-only until a displayed action is
+previewed and explicitly confirmed. Incompatible handoffs reject by default; acknowledgement requires a separate explicit control and a new preview before exact confirmation. It doesn't replace inspect or doctor.
+
+For persistent Node.js 26 view use, declare the package and both pinned runtime
+dependencies in the consumer package manifest before the first Nub install:
+
+```json
+{
+  "dependencies": {
+    "@nebulesstech/openspec-schemas": "0.1.8"
+  },
+  "optionalDependencies": {
+    "@opentui/core": "0.5.11",
+    "web-tree-sitter": "0.25.10"
+  }
+}
+```
+
+Keep the consumer lockfile and use `nub install --frozen` for repeats. A bare local
+tar Nub install may omit package optional edges; schema-copy `nub dlx` does not
+create a persistent view runtime. Core commands remain Node >=20 and support
+`--no-optional` when OpenTUI is not needed. Use
+`$(mise where node@26)/bin/node --experimental-ffi scripts/test-opsx-view-native.mjs`
+for the Node 26 runtime.
+
 ## After Installation
+
+Run `opsx-schema view` for the isolated terminal runtime bootstrap. On an
+unsupported host, use `opsx-schema inspect --json` or `opsx-schema doctor`.
 
 The package installer copies the selected schema into your project. With `-i`,
 it also updates the existing top-level `schema:` value in

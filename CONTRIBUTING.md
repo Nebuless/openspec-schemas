@@ -66,6 +66,7 @@ node bin/openspec-schemas.js verify
 node bin/openspec-schemas.js install <schema-name> -t /path/to/project -i
 node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project
 node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project --apply
+node bin/opsx-schema.js view
 ```
 
 `list` works without OpenSpec. `validate`, `verify`, and `install` require an
@@ -79,16 +80,23 @@ graphs require explicit `--allow-incompatible`.
 
 ## Local Quality And Opt-In Hooks
 
-Node >=20, Nub, POSIX shell, Git, and OpenSpec are required. Run `nub install`
-to provision project dependencies. For each change, update relevant documentation and add a
+Package core targets Node >=20. The locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub, POSIX shell, Git, and OpenSpec are required. Node.js 24 runs the standard suite, including networked skill-installer integration tests. Node.js 26.4+ stable on Linux x64 glibc with a real non-dumb
+TTY runs the native OpenTUI suite. Run `nub install` to provision project
+dependencies, then run `nub run test` on Node 24 and `nub run test:tui` on the
+Node 26.4 runtime. Use `$(mise where node@26)/bin/node --experimental-ffi scripts/test-opsx-view-native.mjs` when the runtime manager requires an explicit executable. Persistent view consumers must declare `@opentui/core@0.5.11` and `web-tree-sitter@0.25.10` at the consumer root before the first Nub install, retain the consumer lockfile, and use frozen installs for repeats. `opsx-schema view` has the same requirements. Targeted offline checks include `node scripts/test-artifact-layout.js`, `sh scripts/test-compound-adapters.sh`, and local lint scripts; they do not replace the standard networked suite. For each change, update relevant documentation and add a
 matching entry under `CHANGELOG.md`'s Unreleased `Added`, `Changed`, or `Fixed`
 section. For example:
 
 ```sh
 nub run changelog:add --type Added --message "Describe change."
 nub run test
+nub run test:tui
 nub run check --require-qlty
 ```
+
+Package engine stays Node >=20. Node 26 global latest serves optional native
+OpenTUI, not package engine. Quality checks don't query update services, run
+background network checks, or update dependency versions automatically.
 
 Changelog updates are explicit; hooks never infer or generate entries. Keep the
 entry aligned with the conventional commit's scope and description. Commit
@@ -130,7 +138,7 @@ Current registry state: `0.1.7` is `beta`; `0.1.5` is `latest`. For the next bet
 2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta`; do not move `latest` implicitly.
 3. Run `nub run test` and `nub run check --require-qlty`.
 4. Review the allowlisted payload: CLI, two installers, schemas, declared host adapters, docs, license. No local runtime state, credentials, `.omo`, or root lockfile.
-5. In a temporary directory, unpack a local tarball and exercise list, verify, and installation with an already installed OpenSpec CLI.
+5. In a temporary directory, unpack a local tarball with `tar`, then exercise list, verify, and installation with an already installed OpenSpec CLI. Keep clean install and lockfile unchanged unless dependency metadata intentionally changed.
 6. Publish manually only after review and authorization, explicitly using the `beta` tag and public access. No release credentials belong in this repository or workflow.
 7. Inspect release artifact manually, then smoke-test beta with `nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list` and verify its dist-tag. Promotion to `latest` is a separate explicit decision.
 
