@@ -32,6 +32,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 | [`README.md`](./README.md) | Users choosing and installing a published schema | Root public docs |
 | [`AGENT_INSTALL.md`](./AGENT_INSTALL.md) | Coding agents performing complete package, skill, adapter, or fallback installation | Root install docs |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors and maintainers running local quality, CLI, and release operations | Root contributor docs |
+| [`docs/architecture/`](./docs/architecture/) | Reviewers of durable architecture designs and implementation plans | Architecture docs |
 | [`openspec/schemas/*/README.md`](./openspec/schemas/) | Users and agents needing schema-specific fit, activation, artifacts, and skills | Each schema package |
 | [`openspec/specs/agent-install-guide/spec.md`](./openspec/specs/agent-install-guide/spec.md) | Changes to agent installation guidance | Normative install contract |
 | [`openspec/specs/custom-schema-packaging/spec.md`](./openspec/specs/custom-schema-packaging/spec.md) | Changes to root catalog or schema packaging docs | Normative packaging contract |
@@ -148,6 +149,7 @@ When the user requests a durable behavior change, record it here or in the relev
 
 - OpenSpec skills and commands use CLI-authoritative artifact metadata, never guessed change roots. Specs globs require concrete non-empty `<changeRoot>/specs/<capability>/spec.md` files; keep local host copies and shipped adapter projections aligned.
 - Compound envelope work keeps OpenSpec as artifact, task, and lifecycle authority. Planning records stable unit, batch, layer, path claim, proof, and continuation fields. Outer loops may use only pre-created, outer-owned worktrees after isolation checks; bounded workers and adapters never manage worktrees or create commits, pushes, pull requests, archival, or separate state.
+- Keep plans and architecture designs in `docs/architecture/`; keep ADRs and specs in their OpenSpec-owned repository paths. Do not leave durable review artifacts only outside the repository.
 
 ## Child DOX Index
 
@@ -155,5 +157,6 @@ When the user requests a durable behavior change, record it here or in the relev
 |---|---|
 | `scripts/AGENTS.md` | Installer safety, portable quality, linting, and tests. |
 | `.agents/skills/writing-for-agents/` | Installed guidance for concise agent-facing documents. |
+| `docs/architecture/AGENTS.md` | Durable architecture designs and implementation plans. |
 | `openspec/schemas/AGENTS.md` | Self-contained schema authoring and validation. |
 | `openspec/schemas/compound-intent-driven/adapters/shared/AGENTS.md` | Canonical `/opsx-ce-*` adapter contracts and projection parity. |

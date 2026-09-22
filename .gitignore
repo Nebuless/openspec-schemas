@@ -4,7 +4,8 @@ CLAUDE.md
 .cursorrules
 codex.md
 AGENTS.md
-.omo/run*
+!docs/architecture/AGENTS.md
+/.omo/
 .qlty/logs
 .qlty/out
 .qlty/plugin_cachedir
