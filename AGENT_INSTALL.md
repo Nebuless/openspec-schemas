@@ -54,7 +54,7 @@ package plus both pinned runtime dependencies before the first Nub install:
 ```json
 {
   "dependencies": {
-    "@nebulesstech/openspec-schemas": "0.1.8"
+    "@nebulesstech/openspec-schemas": "0.1.9"
   },
   "optionalDependencies": {
     "@opentui/core": "0.5.11",

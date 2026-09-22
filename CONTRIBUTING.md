@@ -134,7 +134,7 @@ the same portable commands; no publishing or cloud upload is configured.
 
 ## Manual Beta Release Checklist
 
-Current registry state: `0.1.7` is `beta`; `0.1.5` is `latest`. For the next beta:
+Current registry state: `0.1.8` is `beta`; `0.1.5` is `latest`. Local beta candidate: `0.1.9`, not yet published. For the next beta:
 
 1. Confirm ownership/access for `@nebulesstech/openspec-schemas`, review MIT licensing, and choose a new unpublished version.
 2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta`; do not move `latest` implicitly.

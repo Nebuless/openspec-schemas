@@ -29,7 +29,7 @@ function includes(text, value, label = value) {
 
 assert.equal(packagedSchemas.length, 9, 'expected nine packaged schemas');
 includes(readme, 'adds nine focused alternatives', 'unambiguous nine-schema count');
-includes(readme.replace(/\s+/g, ' '), 'Package source is version `0.1.8`. Registry tags remain `0.1.7` on `beta` and `0.1.5` on `latest`.', 'source and registry versions');
+includes(readme.replace(/\s+/g, ' '), 'Package source is version `0.1.9`. Registry tags remain `0.1.8` on `beta` and `0.1.5` on `latest`.', 'source and registry versions');
 
 const catalog = section(readme, 'Choosing a Schema');
 const catalogRows = catalog.split('\n').filter(line => line.startsWith('| '));

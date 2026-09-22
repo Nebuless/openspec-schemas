@@ -8,6 +8,17 @@ All notable changes will be documented here using
 ### Added
 
 - Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.
+
+### Changed
+
+- Prepare version 0.1.9 as an unpublished local beta candidate because version 0.1.8 already exists on npm.
+
+### Fixed
+
+## [0.1.9] - 2026-09-22
+
+### Added
+
 - Add change-local schema switching with dry-run, compatibility checks, and explicit apply controls.
 - Add schema-declared read-only MCP catalog installs with generic `--mcp` selection and safe host configuration.
 - Add native `opsx-schema` dual CLI commands for JSON project-state inspection via `inspect` and diagnostics via `doctor`.
@@ -64,5 +75,6 @@ All notable changes will be documented here using
 ### Fixed
 
 [Unreleased]: https://github.com/Nebuless/openspec-schemas/commits/HEAD
+[0.1.9]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.9
 [0.1.7]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.6

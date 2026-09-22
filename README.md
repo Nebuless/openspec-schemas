@@ -38,7 +38,7 @@ companion skill for fenced-Gherkin authoring and executable acceptance testing.
 
 ## Install a Schema
 
-Package source is version `0.1.8`. Registry tags remain `0.1.7` on `beta` and `0.1.5` on `latest`. This source version is unreleased and not published. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
+Package source is version `0.1.9`. Registry tags remain `0.1.8` on `beta` and `0.1.5` on `latest`. This source version is unreleased and not published. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
 required. `opsx-schema view` additionally requires Node.js >=26.4, Linux x64
 glibc, a non-dumb TTY, and the optional OpenTUI runtime. The package manifest
 retains `@opentui/core@0.5.11` and `web-tree-sitter@0.25.10` as optional
@@ -97,7 +97,7 @@ dependencies in the consumer package manifest before the first Nub install:
 ```json
 {
   "dependencies": {
-    "@nebulesstech/openspec-schemas": "0.1.8"
+    "@nebulesstech/openspec-schemas": "0.1.9"
   },
   "optionalDependencies": {
     "@opentui/core": "0.5.11",

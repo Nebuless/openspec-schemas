@@ -8,7 +8,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 
 | Area | Owner | Notes |
 |---|---|---|
-| Public install/release docs and CLI | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; beta `0.1.7`, latest `0.1.5`. Root README stays concise; AGENT_INSTALL owns change-local schema procedures. |
+| Public install/release docs and CLI | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; local beta candidate `0.1.9` (unpublished), registry beta `0.1.8`, latest `0.1.5`. Root README stays concise; AGENT_INSTALL owns change-local schema procedures. |
 | Installers, lint, test | `scripts/` | Portable core; CI and hooks delegate here. |
 | Schema packages | `openspec/schemas/` | Self-contained publishable directories. |
 | Canonical Compound commands | `openspec/schemas/compound-intent-driven/adapters/shared/` | Host paths are projections. |
