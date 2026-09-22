@@ -32,6 +32,25 @@ literal `specs/**/*.md` file as output. Agents MUST reject that state, require a
 non-empty <changeRoot>/specs/<capability>/spec.md, and record the protocol failure.
 An empty directory also remains incomplete. Missing CLI metadata blocks work.
 
+## Read-Only MCP Catalog
+
+`mcp.yaml` is schema-local stable catalog metadata. Version `1` accepts only
+`servers` entries with unique lowercase-hyphen names, HTTPS `url`,
+`readOnly: true`, and `auth: none`. This package declares `inspo` and
+`ui-skills`.
+
+After user approval, agents inspect target host evidence. Reuse current or
+prior approval; ask once only when absent. Invoke `--mcp` with `-a`:
+
+```sh
+openspec-schemas install intent-driven-design -t . --mcp all -a opencode
+```
+
+`atomic`, `omp`, and `opencode` receive remote read-only entries. `pi` is
+guided-only and writes no MCP config until user selects supported extension.
+Record catalog names, endpoints, host evidence or explicit host, approval,
+host result, and guided-only state in journey receipt.
+
 ## Workflow And Ownership
 
 Exact graph:
@@ -151,6 +170,30 @@ schema, not guaranteed installed or callable, and not lifecycle authorities.
 Install only approved routes after checking source, license, host compatibility,
 and local collision policy. Never report a skill result without a real
 invocation receipt.
+
+## Optional MCP Resources
+
+`mcp.yaml` is this schema's optional remote-MCP catalog. It declares
+read-only, no-auth resources only. `inspo` uses
+`https://inspomcp.dev/api/mcp`; `ui-skills` uses
+`https://www.ui-skills.com/mcp`.
+
+An agent first identifies host from project evidence. Explicit current or prior
+user approval is reused; otherwise it asks once. Only approved setup invokes:
+
+```sh
+openspec-schemas install intent-driven-design -t . --mcp all -a <atomic|omp|opencode|pi>
+```
+
+Use `--mcp inspo` or `--mcp ui-skills` for one catalog entry. `-a|--agents`
+selects host. Atomic writes `.mcp.json`; Oh My Pi writes `.omp/mcp.json`;
+OpenCode writes an existing sole project config or `opencode.jsonc`. Existing
+server entries are preserved as direct `mcp.<server>` remote entries. A
+different selected entry stops unless `--force`
+explicitly replaces that entry alone. Pi has no native MCP config: setup is
+guided-only until user selects compatible Pi extension. No catalog use means no
+host detection or MCP config mutation. A later MCP opt-in reuses an installed
+schema without requiring schema replacement or `--force`.
 
 ## Associated Skills
 

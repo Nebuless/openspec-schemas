@@ -5,15 +5,31 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
+const testOpsxSchema = require('./test-opsx-schema.js');
+const testOpsxSkills = require('./test-opsx-skills.js');
+const testOpsxHandoff = require('./test-opsx-handoff.js');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'schemas-release-'));
 const designSchema = 'intent-driven-design';
-const designSchemaFiles = ['README.md', 'schema.yaml', 'skills.txt', 'templates/adr.md', 'templates/design.md', 'templates/journey.md', 'templates/proposal.md', 'templates/spec.md', 'templates/tasks.md'].map(file => `openspec/schemas/${designSchema}/${file}`);
+const designSchemaFiles = ['README.md', 'mcp.yaml', 'schema.yaml', 'skills.txt', 'templates/adr.md', 'templates/design.md', 'templates/journey.md', 'templates/proposal.md', 'templates/spec.md', 'templates/tasks.md'].map(file => `openspec/schemas/${designSchema}/${file}`);
 function write(file, text) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text, { mode: 0o755 }); }
 function run(command, args, options = {}) {
   return spawnSync(command, args, { cwd: root, encoding: 'utf8', ...options });
 }
 function ok(result) { assert.equal(result.status, 0, result.stderr + result.stdout); }
+const snapshot = directory => fs.readdirSync(directory).sort().map(name => {
+  const file = path.join(directory, name);
+  const info = fs.lstatSync(file);
+  return [name, info.mode, info.isSymbolicLink() ? fs.readlinkSync(file) : info.isDirectory() ? snapshot(file) : fs.readFileSync(file).toString('hex')];
+});
+function packedFiles(archive) {
+  const listing = run('tar', ['-tzf', archive]);
+  ok(listing);
+  return listing.stdout.split('\n').filter(Boolean).map(file => file.replace(/^package\//, ''));
+}
 try {
+  testOpsxSchema(root);
+  testOpsxSkills(root);
+  testOpsxHandoff(root);
   const tools = path.join(tmp, 'tools');
   write(path.join(tools, 'openspec'), `#!${process.execPath}
 const fs = require('node:fs');
@@ -28,16 +44,16 @@ if (args[0] === 'status') {
 `);
   write(path.join(tools, 'git'), '#!/bin/sh\nif [ "$1" = clone ]; then\n  destination=\n  for arg; do destination=$arg; done\n  mkdir -p "$destination/.agents/skills/openspec-git-discipline"\n  exit 0\nfi\nif [ "$1" = -C ] && [ "$3" = rev-parse ]; then\n  printf "%s\\n" 0123456789012345678901234567890123456789\n  exit 0\nfi\nif [ "$1" = ls-files ]; then\n  command -p git "$@"\n  exit $?\nfi\nexit 1\n');
   const env = { ...process.env, PATH: `${tools}:${process.env.PATH}` };
-  const cli = (args, overrides = {}) => run(process.execPath, [path.join(root, 'bin/openspec-schemas.js'), ...args], { env: { ...env, ...overrides } });
-  const listed = cli(['list'], { PATH: tmp });
-  ok(listed); assert.equal(listed.stdout.split('\n').filter(name => name === designSchema).length, 1);
-  ok(cli(['validate']));
-  ok(cli(['verify']));
-  ok(cli(['validate', designSchema]));
-  ok(cli(['validate', 'minimalist']));
-  assert.notEqual(cli(['validate', 'missing']).status, 0);
-  assert.notEqual(cli(['validate', 'minimalist', 'event-driven']).status, 0);
-  assert.notEqual(cli(['verify', 'minimalist']).status, 0);
+  const cli = (args, overrides = {}) => run(process.execPath, [path.join(root, 'bin/openspec-schemas.js'), ...args], { env: { ...env, ...overrides } }); const forceEpipe = path.join(tmp, 'force-epipe.js'); write(forceEpipe, `const stream = process[process.env.EPIPE_STREAM]; process.nextTick(() => { const error = new Error('forced stream error'); error.code = process.env.STREAM_ERROR_CODE; stream.emit('error', error); });\n`); for (const [launcher, stream] of [['openspec-schemas.js', 'stdout'], ['opsx-schema.js', 'stderr']]) { const result = run(process.execPath, ['--require', forceEpipe, path.join(root, 'bin', launcher), '--version'], { env: { ...env, EPIPE_STREAM: stream, STREAM_ERROR_CODE: 'EPIPE' } }); assert.equal(result.status, 0, result.stderr); assert.doesNotMatch(result.stderr, /Unhandled|forced stream error|\n\s+at /); } const streamFailure = run(process.execPath, ['--require', forceEpipe, path.join(root, 'bin/openspec-schemas.js'), '--version'], { env: { ...env, EPIPE_STREAM: 'stdout', STREAM_ERROR_CODE: 'ENOSPC' } }); assert.notEqual(streamFailure.status, 0); assert.match(streamFailure.stderr, /forced stream error/);
+  const legacyUsage = cli([]); assert.equal(legacyUsage.status, 0); assert.match(legacyUsage.stdout, /^Usage: openspec-schemas /); assert.equal(legacyUsage.stderr, '');
+  const packageManifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')); const opsxCli = args => run(process.execPath, [path.join(root, 'bin/opsx-schema.js'), ...args], { cwd: tmp, env: { ...env, PATH: tmp } }); const opsxFailures = []; const requireOpsx = (condition, message) => { if (!condition) opsxFailures.push(message); }; const strictFlagError = result => result.status === 2 && result.stdout === '' && /^Error: .+\nUsage: opsx-schema\b/m.test(result.stderr); assert.equal(strictFlagError({ status: 2, stdout: '', stderr: 'Success: accepted\n' }), false);
+  requireOpsx(packageManifest.bin?.['opsx-schema'] === 'bin/opsx-schema.js', 'package bin maps opsx-schema to bin/opsx-schema.js'); requireOpsx(fs.existsSync(path.join(root, 'bin/opsx-schema.js')), 'bin/opsx-schema.js exists'); const opsxSummary = opsxCli([]); const summaryFields = [/^Project: .+$/m, /^Schema: .+$/m, /^Changes: \d+ active$/m, /^Artifacts: \d+ ready, \d+ blocked$/m, /^Skills: \d+ managed, \d+ enabled$/m, /^Diagnostics: \d+ errors?, \d+ warnings?$/m]; requireOpsx(opsxSummary.status === 0 && opsxSummary.stderr === '' && summaryFields.every(field => field.test(opsxSummary.stdout)), 'no arguments exit 0 with Project, Schema, Changes, Artifacts, Skills, and Diagnostics summary fields'); for (const versionFlag of ['--version', '-v', '-V']) for (const launcher of [cli, opsxCli]) { const version = launcher([versionFlag]); requireOpsx(version.status === 0 && version.stdout === `${packageManifest.version}\n` && version.stderr === '', `${versionFlag} exits 0 with package version only from both launchers`); }
+  const opsxJson = opsxCli(['list', '--json']); let jsonEnvelope; try { jsonEnvelope = JSON.parse(opsxJson.stdout); } catch { opsxFailures.push('--json writes one valid JSON document to stdout'); } requireOpsx(opsxJson.status === 0 && opsxJson.stderr === '' && jsonEnvelope?.schemaVersion === 1 && jsonEnvelope.command === 'list' && jsonEnvelope.ok === true && Array.isArray(jsonEnvelope.diagnostics) && Array.isArray(jsonEnvelope.mutations) && Array.isArray(jsonEnvelope.nextActions), '--json exits 0 with versioned success envelope and clean stderr');
+  const opsxBefore = fs.readdirSync(tmp).sort(); for (const args of [['--json=invalid'], ['--unknown'], ['list', '--unknown'], ['list', '--json', '--json'], ['list', '--json=invalid'], ['--json', 'list'], ['--version', '--json'], ['-list']]) { const result = opsxCli(args); requireOpsx(strictFlagError(result) && !/success/i.test(result.stdout + result.stderr), `${args.join(' ')} exits 2 with no output or success diagnostic`); } requireOpsx(opsxJson.stdout.endsWith('\n') && jsonEnvelope?.data?.schemas?.includes(designSchema) && jsonEnvelope?.schemaVersion === 1, '--json list has deterministic newline, schema version, and schema payload'); requireOpsx(JSON.stringify(fs.readdirSync(tmp).sort()) === JSON.stringify(opsxBefore), 'opsx-schema summary and JSON commands do not mutate current project');
+  const listed = cli(['list'], { PATH: tmp }); ok(listed); assert.equal(listed.stdout.split('\n').filter(name => name === designSchema).length, 1); const opsxListed = opsxCli(['list']); requireOpsx(opsxListed.status === listed.status && opsxListed.stdout === listed.stdout && opsxListed.stderr === listed.stderr, 'opsx-schema list preserves openspec-schemas behavior');
+  ok(cli(['validate'])); ok(cli(['verify'])); ok(cli(['validate', designSchema]));
+  ok(cli(['validate', 'minimalist'])); assert.notEqual(cli(['validate', 'missing']).status, 0);
+  assert.notEqual(cli(['validate', 'minimalist', 'event-driven']).status, 0); assert.notEqual(cli(['verify', 'minimalist']).status, 0);
   const target = path.join(tmp, 'project with spaces');
   const install = ['install', 'minimalist', '--target', target];
   assert.notEqual(cli(install, { PATH: tmp }).status, 0);
@@ -85,8 +101,81 @@ if (args[0] === 'status') {
   assert.match(fs.readFileSync(path.join(agentAliasTarget, '.opencode/commands/opsx-ce-plan.md'), 'utf8'), /openspec/);
   assert.notEqual(cli(['install', 'minimalist', '-a', 'pi']).status, 0);
   assert.notEqual(cli(['install', 'compound-intent-driven', '-a']).status, 0);
-  assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'invalid']).status, 0);
-  assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'pi', '--host', 'atomic']).status, 0);
+   assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'invalid']).status, 0);
+   assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'pi', '--host', 'atomic']).status, 0);
+   const mcpEntries = {
+      atomic: { file: '.mcp.json', value: { mcpServers: { inspo: { url: 'https://inspomcp.dev/api/mcp' }, 'ui-skills': { url: 'https://www.ui-skills.com/mcp' } } } },
+      omp: { file: '.omp/mcp.json', value: { mcpServers: { inspo: { type: 'http', url: 'https://inspomcp.dev/api/mcp' }, 'ui-skills': { type: 'http', url: 'https://www.ui-skills.com/mcp' } } } },
+      opencode: { file: 'opencode.jsonc', value: { mcp: { inspo: { type: 'remote', url: 'https://inspomcp.dev/api/mcp' }, 'ui-skills': { type: 'remote', url: 'https://www.ui-skills.com/mcp' } } } },
+   };
+   for (const [host, expected] of Object.entries(mcpEntries)) {
+     const mcpTarget = path.join(tmp, `mcp ${host}`);
+     write(path.join(mcpTarget, 'sentinel'), 'keep');
+     ok(cli(['install', designSchema, '-t', mcpTarget, '--mcp', 'all', '-a', host]));
+     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpTarget, expected.file), 'utf8')), expected.value);
+     assert.equal(fs.existsSync(path.join(mcpTarget, '.opencode/commands/opsx-ce-plan.md')), false);
+     assert.equal(fs.readFileSync(path.join(mcpTarget, 'sentinel'), 'utf8'), 'keep');
+   }
+   const selectedMcpTarget = path.join(tmp, 'mcp selected');
+   ok(cli(['install', designSchema, '-t', selectedMcpTarget, '--mcp', 'inspo', '-a', 'atomic']));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(selectedMcpTarget, '.mcp.json'), 'utf8')), { mcpServers: { inspo: { url: 'https://inspomcp.dev/api/mcp' } } });
+   const aliasMcpTarget = path.join(tmp, 'mcp alias');
+   ok(cli(['install', designSchema, '-t', aliasMcpTarget, '--mcp', 'inspo', '--agents', 'atomic']));
+   assert.equal(fs.existsSync(path.join(aliasMcpTarget, '.mcp.json')), true);
+   const hostAliasMcpTarget = path.join(tmp, 'mcp host alias');
+   ok(cli(['install', designSchema, '-t', hostAliasMcpTarget, '--mcp', 'inspo', '--agent', 'omp']));
+   assert.equal(fs.existsSync(path.join(hostAliasMcpTarget, '.omp/mcp.json')), true);
+   const detectedMcpTarget = path.join(tmp, 'mcp detected');
+   write(path.join(detectedMcpTarget, '.omp/existing'), 'keep');
+   ok(cli(['install', designSchema, '-t', detectedMcpTarget, '--mcp', 'ui-skills']));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(detectedMcpTarget, '.omp/mcp.json'), 'utf8')), { mcpServers: { 'ui-skills': { type: 'http', url: 'https://www.ui-skills.com/mcp' } } });
+   const ambiguousMcpTarget = path.join(tmp, 'mcp ambiguous');
+   write(path.join(ambiguousMcpTarget, '.omp/existing'), 'keep'); write(path.join(ambiguousMcpTarget, '.pi/existing'), 'keep');
+   const ambiguousMcpBefore = snapshot(ambiguousMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', ambiguousMcpTarget, '--mcp', 'all']).status, 0); assert.deepEqual(snapshot(ambiguousMcpTarget), ambiguousMcpBefore);
+   assert.notEqual(cli(['install', designSchema, '-t', path.join(tmp, 'mcp missing host'), '--mcp', 'all']).status, 0);
+   assert.notEqual(cli(['install', 'minimalist', '-t', path.join(tmp, 'mcp absent catalog'), '--mcp', 'all', '-a', 'atomic']).status, 0);
+   assert.notEqual(cli(['install', designSchema, '-t', path.join(tmp, 'mcp unknown'), '--mcp', 'missing', '-a', 'atomic']).status, 0);
+   const mcpCollisionTarget = path.join(tmp, 'mcp collision');
+   write(path.join(mcpCollisionTarget, '.mcp.json'), JSON.stringify({ mcpServers: { inspo: { url: 'https://wrong.example/mcp' }, unrelated: { url: 'https://keep.example/mcp' } } }, null, 2));
+   const mcpCollisionBefore = snapshot(mcpCollisionTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', mcpCollisionTarget, '--mcp', 'inspo', '-a', 'atomic']).status, 0); assert.deepEqual(snapshot(mcpCollisionTarget), mcpCollisionBefore);
+   ok(cli(['install', designSchema, '-t', mcpCollisionTarget, '--mcp', 'inspo', '-a', 'atomic', '--force']));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpCollisionTarget, '.mcp.json'), 'utf8')), { mcpServers: { inspo: { url: 'https://inspomcp.dev/api/mcp' }, unrelated: { url: 'https://keep.example/mcp' } } });
+    const mcpNoop = snapshot(mcpCollisionTarget); ok(cli(['install', designSchema, '-t', mcpCollisionTarget, '--mcp', 'inspo', '-a', 'atomic', '--force'])); assert.deepEqual(snapshot(mcpCollisionTarget), mcpNoop);
+    const mcpOptInTarget = path.join(tmp, 'mcp opt in');
+    ok(cli(['install', designSchema, '-t', mcpOptInTarget]));
+    const installedSchema = snapshot(path.join(mcpOptInTarget, 'openspec/schemas', designSchema));
+    ok(cli(['install', designSchema, '-t', mcpOptInTarget, '--mcp', 'inspo', '-a', 'opencode']));
+    assert.deepEqual(snapshot(path.join(mcpOptInTarget, 'openspec/schemas', designSchema)), installedSchema);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpOptInTarget, 'opencode.jsonc'), 'utf8')), { mcp: { inspo: { type: 'remote', url: 'https://inspomcp.dev/api/mcp' } } });
+    const failMcpWrite = path.join(tmp, 'fail-mcp-write.js');
+    write(failMcpWrite, `'use strict';
+const fs = require('node:fs');
+const renameSync = fs.renameSync;
+fs.renameSync = (source, destination) => {
+  if (destination === process.env.FAIL_MCP_DESTINATION) throw new Error('injected MCP config write failure');
+  return renameSync(source, destination);
+};
+`);
+    const atomicMcpTarget = path.join(tmp, 'mcp atomic failure');
+    const atomicMcpConfig = path.join(atomicMcpTarget, 'opencode.jsonc');
+    write(atomicMcpConfig, '{}\n');
+    write(path.join(atomicMcpTarget, 'openspec/config.yaml'), 'schema: old\n');
+    const atomicMcpBefore = snapshot(atomicMcpTarget);
+    assert.notEqual(cli(['install', designSchema, '-t', atomicMcpTarget, '--mcp', 'inspo', '-a', 'opencode', '--activate'], { NODE_OPTIONS: `--require=${failMcpWrite}`, FAIL_MCP_DESTINATION: atomicMcpConfig }).status, 0);
+    assert.deepEqual(snapshot(atomicMcpTarget), atomicMcpBefore);
+   const jsoncTarget = path.join(tmp, 'mcp jsonc');
+   const jsonc = '{\n  // keep\n  "mcp": {}\n}\n'; write(path.join(jsoncTarget, 'opencode.jsonc'), jsonc);
+   const jsoncBefore = snapshot(jsoncTarget); assert.notEqual(cli(['install', designSchema, '-t', jsoncTarget, '--mcp', 'inspo', '-a', 'opencode']).status, 0); assert.deepEqual(snapshot(jsoncTarget), jsoncBefore);
+   const malformedMcpTarget = path.join(tmp, 'mcp malformed'); write(path.join(malformedMcpTarget, '.mcp.json'), '{'); const malformedMcpBefore = snapshot(malformedMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', malformedMcpTarget, '--mcp', 'inspo', '-a', 'atomic']).status, 0); assert.deepEqual(snapshot(malformedMcpTarget), malformedMcpBefore);
+   const mapMcpTarget = path.join(tmp, 'mcp map mismatch'); write(path.join(mapMcpTarget, '.mcp.json'), JSON.stringify({ mcpServers: [] })); const mapMcpBefore = snapshot(mapMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', mapMcpTarget, '--mcp', 'inspo', '-a', 'atomic']).status, 0); assert.deepEqual(snapshot(mapMcpTarget), mapMcpBefore);
+   const linkedMcpTarget = path.join(tmp, 'mcp symlink'); write(path.join(linkedMcpTarget, 'outside'), '{}'); fs.symlinkSync(path.join(linkedMcpTarget, 'outside'), path.join(linkedMcpTarget, '.mcp.json')); const linkedMcpBefore = snapshot(linkedMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', linkedMcpTarget, '--mcp', 'inspo', '-a', 'atomic', '--force']).status, 0); assert.deepEqual(snapshot(linkedMcpTarget), linkedMcpBefore);
+   const piMcpTarget = path.join(tmp, 'mcp pi'); write(path.join(piMcpTarget, '.pi/existing'), 'keep'); const piMcpBefore = snapshot(piMcpTarget);
+   const piMcp = cli(['install', designSchema, '-t', piMcpTarget, '--mcp', 'all', '-a', 'pi']); ok(piMcp); assert.match(piMcp.stdout, /guided-only/); assert.deepEqual(snapshot(piMcpTarget).filter(([name]) => name !== 'openspec'), piMcpBefore);
   const project = path.join(tmp, 'switch project');
   const changeRoot = path.join(project, 'openspec/changes/authoritative-root');
   const metadata = path.join(changeRoot, '.openspec.yaml');
@@ -100,12 +189,7 @@ if (args[0] === 'status') {
   const destination = { ...source, schemaName: 'custom-local' };
   const statusEnv = { SOURCE_STATUS: JSON.stringify(source), TARGET_STATUS: JSON.stringify(destination), STATUS_METADATA: metadata, STATUS_ORIGINAL: original };
   const switchArgs = ['set-change-schema', 'example', 'custom-local', '-t', project];
-  const snapshot = directory => fs.readdirSync(directory).sort().map(name => {
-    const file = path.join(directory, name);
-    const info = fs.lstatSync(file);
-    return [name, info.mode, info.isSymbolicLink() ? fs.readlinkSync(file) : info.isDirectory() ? snapshot(file) : fs.readFileSync(file).toString('hex')];
-  });
-  const before = snapshot(project);
+   const before = snapshot(project);
   const log = path.join(tmp, 'status-calls');
   ok(cli(switchArgs, { ...statusEnv, CALL_LOG: log }));
   assert.deepEqual(snapshot(project), before);
@@ -179,7 +263,7 @@ if (args[0] === 'status') {
   write(metadata, original);
   fs.chmodSync(metadata, 0o640);
   assert.deepEqual(snapshot(project), before);
-  const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']);
+  const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE', 'bin/mcp-config.js', 'bin/change-schema.js', 'bin/change-schema-transaction.js', 'bin/legacy-change-schema.js', 'bin/openspec-schemas.js', 'bin/opsx-ipc-protocol.js', 'bin/opsx-schema.js', 'bin/opsx-snapshot.js', 'bin/opsx-skills.js', 'bin/opsx-path-guard.js', 'bin/opsx-view-actions.js', 'bin/opsx-view.js', 'src/tui/controller.mjs', 'src/tui/input.mjs', 'src/tui/overview-model.mjs', 'src/tui/overview.mjs', 'src/tui/panes-model.mjs', 'src/tui/panes.mjs', 'src/tui/runtime.mjs', 'src/tui/state.mjs']);
   const tracked = run('git', ['ls-files', '-z']);
   ok(tracked);
   for (const file of tracked.stdout.split('\0').filter(Boolean)) {
@@ -194,13 +278,42 @@ if (args[0] === 'status') {
   for (const file of designSchemaFiles) packageFiles.add(file);
   const files = [...packageFiles];
   assert.deepEqual(files.filter(file => file.startsWith(`openspec/schemas/${designSchema}/`)).sort(), designSchemaFiles.toSorted()); assert.deepEqual(designSchemaFiles.filter(file => !fs.statSync(path.join(root, file)).isFile()), []);
-  assert(files.includes('bin/openspec-schemas.js')); assert(files.includes('.pi/prompts/opsx-ce-plan.md')); assert(files.includes('CHANGELOG.md'));
+  assert(files.includes('bin/openspec-schemas.js')); assert(files.includes('bin/mcp-config.js')); assert(files.includes('.pi/prompts/opsx-ce-plan.md')); assert(files.includes('CHANGELOG.md'));
+  for (const file of ['bin/change-schema.js', 'bin/change-schema-transaction.js', 'bin/legacy-change-schema.js', 'bin/opsx-ipc-protocol.js', 'bin/opsx-schema.js', 'bin/opsx-snapshot.js', 'bin/opsx-skills.js', 'bin/opsx-path-guard.js', 'bin/opsx-view-actions.js', 'bin/opsx-view.js', 'src/tui/controller.mjs', 'src/tui/input.mjs', 'src/tui/overview-model.mjs', 'src/tui/overview.mjs', 'src/tui/panes-model.mjs', 'src/tui/panes.mjs', 'src/tui/runtime.mjs', 'src/tui/state.mjs']) assert(files.includes(file));
   assert(!files.some(file => /^scripts\/(lint-|test-|quality)/.test(file))); assert(!files.some(file => /(^\.omo\/|node_modules|package-lock|^openspec\/changes\/|^\.opencode\/package.json|^\.(?:claude|codex|omp)\/|^openspec\/schemas\/intent-driven-design\/(?:assets|external|repos|research)\/)/.test(file))); assert(!files.some(file => /^\.(?:opencode\/commands|senpi\/prompts|pi\/prompts|atomic\/prompts)\/(?!opsx-ce-)/.test(file)));
-  const extracted = path.join(tmp, 'package');
+   const extracted = path.join(tmp, 'package');
   for (const file of files) { const output = path.join(extracted, file); fs.mkdirSync(path.dirname(output), { recursive: true }); fs.copyFileSync(path.join(root, file), output); }
   const packedCli = args => run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), ...args], { env });
   const packedList = packedCli(['list']);
   ok(packedList); assert.equal(packedList.stdout.split('\n').filter(name => name === designSchema).length, 1);
+   const packedOpsxList = run(process.execPath, [path.join(extracted, 'bin/opsx-schema.js'), 'list', '--json'], { env });
+   ok(packedOpsxList); assert.equal(JSON.parse(packedOpsxList.stdout).data.schemas.includes(designSchema), true);
+   assert.equal(fs.existsSync(path.join(extracted, 'src/tui/runtime.mjs')), true);
+   const packed = run('nub', ['pack', '--ignore-scripts', '--json']);
+   ok(packed);
+   const archive = path.join(root, JSON.parse(packed.stdout)[0].filename);
+   try {
+     const tarFiles = packedFiles(archive);
+     for (const file of ['bin/mcp-config.js', 'bin/change-schema.js', 'bin/change-schema-transaction.js', 'bin/legacy-change-schema.js', 'bin/opsx-ipc-protocol.js', 'bin/opsx-schema.js', 'bin/opsx-snapshot.js', 'bin/opsx-skills.js', 'bin/opsx-path-guard.js', 'bin/opsx-view-actions.js', 'bin/opsx-view.js', 'src/tui/controller.mjs', 'src/tui/input.mjs', 'src/tui/overview-model.mjs', 'src/tui/overview.mjs', 'src/tui/panes-model.mjs', 'src/tui/panes.mjs', 'src/tui/runtime.mjs', 'src/tui/state.mjs', `openspec/schemas/${designSchema}/mcp.yaml`]) assert(tarFiles.includes(file));
+     assert(!tarFiles.some(file => file.startsWith('scripts/test-')));
+     assert(!tarFiles.some(file => file === 'nub.lock' || file.startsWith('openspec/changes/')));
+     const tarExtracted = path.join(tmp, 'tar-package');
+     fs.mkdirSync(tarExtracted);
+     ok(run('tar', ['-xzf', archive, '-C', tarExtracted]));
+     const tarRoot = path.join(tarExtracted, 'package');
+     const tarCore = run(process.execPath, [path.join(tarRoot, 'bin/opsx-schema.js'), '--version'], { env: { ...env, NODE_PATH: '' } });
+     ok(tarCore);
+     assert.equal(tarCore.stdout, `${JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version}\n`);
+     const tarView = run(process.execPath, [path.join(tarRoot, 'bin/opsx-schema.js'), 'view'], { cwd: tmp, env: { ...env, NODE_PATH: '' } });
+     assert.equal(tarView.status, 1);
+      assert.match(tarView.stderr, /TUI_(?:RUNTIME|TARGET)_UNSUPPORTED/);
+   } finally {
+     fs.rmSync(archive, { force: true });
+   }
+  const packedSkillsProject = path.join(tmp, 'packed-skills-project');
+  write(path.join(packedSkillsProject, 'openspec/config.yaml'), 'schema: minimalist\n');
+  const packedSkills = run(process.execPath, [path.join(extracted, 'bin/opsx-schema.js'), 'skills', 'inspect', '--schema', 'minimalist', '--json'], { cwd: packedSkillsProject, env });
+  ok(packedSkills); assert.deepEqual(JSON.parse(packedSkills.stdout).data.resources.map(resource => resource.target), ['.agents/skills/openspec-git-discipline']);
   const packedTarget = path.join(tmp, 'packed-target');
   write(path.join(packedTarget, 'openspec/config.yaml'), 'schema: minimalist\n'); write(path.join(packedTarget, 'nested/config.yaml'), 'schema: unrelated\n'); write(path.join(packedTarget, 'sentinel'), 'keep');
   ok(packedCli(['install', designSchema, '--target', packedTarget, '--activate']));
@@ -218,6 +331,13 @@ if (args[0] === 'status') {
   write(path.join(symlinkTarget, 'sentinel'), 'keep'); fs.mkdirSync(path.join(symlinkTarget, 'openspec/schemas'), { recursive: true }); fs.symlinkSync(tmp, path.join(symlinkTarget, `openspec/schemas/${designSchema}`));
   const symlinkBefore = snapshot(symlinkTarget);
   assert.notEqual(packedCli(['install', designSchema, '--target', symlinkTarget, '--force']).status, 0); assert.deepEqual(snapshot(symlinkTarget), symlinkBefore); ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'validate'], { env })); ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'verify'], { env }));
+  const packedCatalog = path.join(extracted, `openspec/schemas/${designSchema}/mcp.yaml`);
+  const validCatalog = fs.readFileSync(packedCatalog, 'utf8');
+  fs.writeFileSync(packedCatalog, validCatalog.replace('auth: none', 'auth: bearer-token'));
+  assert.notEqual(packedCli(['validate', designSchema]).status, 0);
+  assert.notEqual(packedCli(['verify']).status, 0);
+  fs.writeFileSync(packedCatalog, validCatalog.replace('version: 1', 'version: 2'));
+  assert.notEqual(packedCli(['validate', designSchema]).status, 0);
   const fixture = path.join(tmp, 'quality');
   fs.mkdirSync(path.join(fixture, 'scripts'), { recursive: true });
   for (const file of ['quality.sh', 'install-git-hooks.sh', 'lint-markdown.js', 'update-changelog.js']) fs.copyFileSync(path.join(root, 'scripts', file), path.join(fixture, 'scripts', file));
@@ -246,5 +366,6 @@ if (args[0] === 'status') {
   assert.match(missingHookTool.stderr, /qlty required/);
   fs.unlinkSync(path.join(tools, 'openspec'));
   assert.match(quality([], { PATH: tools }).stderr, /openspec required/);
+  assert.deepEqual(opsxFailures, [], `opsx-schema desired contract missing:\n- ${opsxFailures.join('\n- ')}`);
   console.log('test-release: CLI, package file set, quality, hooks passed');
 } finally { fs.rmSync(tmp, { recursive: true, force: true }); }

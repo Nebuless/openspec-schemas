@@ -1,6 +1,6 @@
 {
   "name": "@nebulesstech/openspec-schemas",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Copyable OpenSpec workflow schemas and optional companion adapters",
   "license": "MIT",
   "repository": {
@@ -11,10 +11,12 @@
     "node": ">=20"
   },
   "bin": {
-    "openspec-schemas": "bin/openspec-schemas.js"
+    "openspec-schemas": "bin/openspec-schemas.js",
+    "opsx-schema": "bin/opsx-schema.js"
   },
   "files": [
     "bin/",
+    "src/tui/",
     "scripts/install-schema-skills.sh",
     "scripts/install-compound-adapters.sh",
     "openspec/schemas/",
@@ -33,7 +35,8 @@
     "tag": "beta"
   },
   "scripts": {
-    "test": "node scripts/test-artifact-layout.js && sh scripts/test-compound-adapters.sh && sh scripts/test-install-compound-adapters.sh && sh scripts/test-install-schema-skills.sh && node scripts/test-release.js && node scripts/test-release-checks.js",
+    "test": "node scripts/test-artifact-layout.js && sh scripts/test-compound-adapters.sh && sh scripts/test-install-compound-adapters.sh && sh scripts/test-install-schema-skills.sh && node scripts/test-release.js && node scripts/test-release-checks.js && node scripts/test-opsx-view.js",
+    "test:tui": "node --experimental-ffi scripts/test-opsx-view-native.mjs",
     "check": "sh scripts/quality.sh",
     "lint:markdown": "node scripts/lint-markdown.js",
     "lint:commit": "node scripts/lint-commit-msg.js",
@@ -49,5 +52,9 @@
   "packageManager": "nub@0.9.2",
   "devDependencies": {
     "@fission-ai/openspec": "^1.13.0"
+  },
+  "optionalDependencies": {
+    "@opentui/core": "0.5.11",
+    "web-tree-sitter": "0.25.10"
   }
 }
