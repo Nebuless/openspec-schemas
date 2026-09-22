@@ -7,18 +7,35 @@ All notable changes will be documented here using
 
 ### Added
 
-- Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.
+- No changes yet.
 
 ### Changed
 
-- Prepare version 0.1.9 as an unpublished local beta candidate because version 0.1.8 already exists on npm.
+- No changes yet.
 
 ### Fixed
+
+- No changes yet.
+
+## [1.8.0] - 2026-09-22
+
+### Added
+
+- No changes yet.
+
+### Changed
+
+- Add transparent fork provenance and a concise list of fork additions to the README.
+
+### Fixed
+
+- No changes yet.
 
 ## [0.1.9] - 2026-09-22
 
 ### Added
 
+- Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.
 - Add change-local schema switching with dry-run, compatibility checks, and explicit apply controls.
 - Add schema-declared read-only MCP catalog installs with generic `--mcp` selection and safe host configuration.
 - Add native `opsx-schema` dual CLI commands for JSON project-state inspection via `inspect` and diagnostics via `doctor`.
@@ -31,6 +48,7 @@ All notable changes will be documented here using
 
 ### Changed
 
+- Prepare version 0.1.9 as the released beta after version 0.1.8.
 - Upgrade the Compound intent-driven schema contract with concrete define specs, stable execution-envelope fields, bounded one-task workers, checked outer-owned worktree isolation, continuation handoffs, and universal next-command reporting while OpenSpec remains lifecycle authority.
 - Manage project tooling with Nub, make `nub dlx` primary package runner, document schema-level `validate`, retain all-schema `verify` compatibility, and expose install option aliases.
 - Restructure root documentation around a concise user entrypoint with linked agent, contributor, and schema-specific guides.
@@ -75,6 +93,7 @@ All notable changes will be documented here using
 ### Fixed
 
 [Unreleased]: https://github.com/Nebuless/openspec-schemas/commits/HEAD
-[0.1.9]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.9
+[1.8.0]: https://www.npmjs.com/package/@nebulesstech/openspec-schemas/v/1.8.0
+[0.1.9]: https://www.npmjs.com/package/@nebulesstech/openspec-schemas/v/0.1.9
 [0.1.7]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.7
 [0.1.6]: https://github.com/Nebuless/openspec-schemas/releases/tag/v0.1.6

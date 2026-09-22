@@ -8,7 +8,7 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 
 | Area | Owner | Notes |
 |---|---|---|
-| Public install/release docs and CLI | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; local beta candidate `0.1.9` (unpublished), registry beta `0.1.8`, latest `0.1.5`. Root README stays concise; AGENT_INSTALL owns change-local schema procedures. |
+| Public install/release docs and CLI | Root docs, `package.json`, `bin/` | Package `@nebulesstech/openspec-schemas`; released beta `0.1.9`, stable `1.8.0` latest candidate. Root README stays concise; AGENT_INSTALL owns change-local schema procedures. |
 | Installers, lint, test | `scripts/` | Portable core; CI and hooks delegate here. |
 | Schema packages | `openspec/schemas/` | Self-contained publishable directories. |
 | Canonical Compound commands | `openspec/schemas/compound-intent-driven/adapters/shared/` | Host paths are projections. |
@@ -48,10 +48,10 @@ nub install
 nub run test
 nub run check --require-qlty
 nub run changelog:add --type Added --message "describe change"
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas validate <schema-name>
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas verify
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install <schema-name> -t <dir> [-sk] [-a <opencode|senpi|pi|atomic>] [-i] [--force]
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas list
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas validate <schema-name>
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas verify
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas install <schema-name> -t <dir> [-sk] [-a <opencode|senpi|pi|atomic>] [-i] [--force]
 openspec schema validate <schema-name>
 node bin/openspec-schemas.js list
 node bin/openspec-schemas.js validate <schema-name>
@@ -59,7 +59,7 @@ node bin/openspec-schemas.js verify
 node bin/opsx-schema.js handoff <change> <schema> [-t <project>] [--apply] [--allow-incompatible] [--json]
 ```
 
-Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Core consumers may use `--no-optional`; persistent Node 26 view consumers declare the pinned OpenTUI runtime dependencies at the consumer root before the first install, retain their lockfile, and use frozen installs for repeats. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
+Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Core consumers may use `--no-optional`; persistent Node 26 view consumers declare the pinned OpenTUI runtime dependencies at the consumer root before the first install, retain their lockfile, and use frozen installs for repeats. Inspect release artifact and run a clean-project Nub smoke test before publishing; use `latest` only for approved stable releases, never store credentials or add automatic publishing.
 Public usage is Nub-first. `-a|--agents` accepts only `opencode`, `senpi`,
 `pi`, or `atomic` and requires `compound-intent-driven`; `--agent` and `--host`
 remain compatibility aliases. Keep local `node bin/openspec-schemas.js` commands for

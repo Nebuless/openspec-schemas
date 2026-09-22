@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const packageVersion = require('../package.json').version;
 
 function write(file, text, mode = 0o644) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -99,7 +100,7 @@ module.exports = function testOpsxSkills(root) {
     const markerFile = path.join(project, '.openspec/opsx-schema/managed-skills.json');
     const marker = JSON.parse(fs.readFileSync(markerFile, 'utf8'));
     assert.equal(marker.package.name, '@nebulesstech/openspec-schemas');
-    assert.equal(marker.package.version, '0.1.9');
+    assert.equal(marker.package.version, packageVersion);
     assert.deepEqual(marker.resources.map(resource => resource.target), ['.agents/skills/openspec-git-discipline']);
     assert.match(marker.resources[0].digest, /^sha256:[a-f0-9]{64}$/);
     assert.deepEqual(marker.ownerships[0].resources, ['.agents/skills/openspec-git-discipline']);

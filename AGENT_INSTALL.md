@@ -3,7 +3,7 @@
 Package core targets Node >=20; the locked full toolchain for OpenSpec requires
 Node.js >=20.19.0.
 
-Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project. The repository currently includes `intent-driven`, `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, `intent-driven-design`, `behaviour-driven`, `spec-driven-with-adr`, `event-driven`, and `minimalist` schemas; the clone is authoritative if that list changes.
+Use this flow when installing any schema from this repository into an existing OpenSpec project. Schemas declare companion skills in a `skills.txt` manifest inside the schema directory; Step 6 installs every declared skill into the target project. The repository currently includes `intent-driven`, `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, `intent-driven-design`, `behaviour-driven`, `spec-driven-with-adr`, `event-driven`, and `minimalist` schemas; the clone is authoritative if that list changes. This fork extends [intent-driven-dev/openspec-schemas](https://github.com/intent-driven-dev/openspec-schemas), authored by [Hari Krishnan](https://github.com/harikrishnan83), while [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec) remains the underlying platform.
 
 ## Prerequisites
 
@@ -27,13 +27,13 @@ fetches and runs its `openspec-schemas` binary. `list` needs no OpenSpec CLI;
 `install` requires the prerequisite OpenSpec CLI from this guide:
 
 ```bash
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas validate <schema-name>
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install <schema-name> \
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas list
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas validate <schema-name>
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas install <schema-name> \
   -t . -sk -i
 ```
 
-The package-specific cooling-window exemption permits the selected beta while
+The package-specific cooling-window exemption permits the selected release while
 keeping Nub's release-age policy for all other packages. The package installer
 validates before mutation, refuses collisions unless `--force` is explicit, and
 does not install OpenSpec or host runtimes; Nub or the package manager may
@@ -42,7 +42,7 @@ remains a compatibility command that validates every bundled schema; prefer
 `validate <schema-name>` for one schema.
 
 ```bash
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas verify
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas verify
 ```
 
 ### Persistent Node 26 View Runtime
@@ -54,7 +54,7 @@ package plus both pinned runtime dependencies before the first Nub install:
 ```json
 {
   "dependencies": {
-    "@nebulesstech/openspec-schemas": "0.1.9"
+    "@nebulesstech/openspec-schemas": "1.8.0"
   },
   "optionalDependencies": {
     "@opentui/core": "0.5.11",
@@ -63,7 +63,7 @@ package plus both pinned runtime dependencies before the first Nub install:
 }
 ```
 
-Keep the consumer lockfile and use `nub install --frozen` for repeat installs.
+Keep the consumer lockfile and use `nub install --frozen-lockfile` for repeat installs.
 A bare local tar Nub install may omit package optional edges. Schema-copy
 `nub dlx` does not create a persistent view runtime. Use
 `$(mise where node@26)/bin/node --experimental-ffi scripts/test-opsx-view-native.mjs`
@@ -74,7 +74,7 @@ or `opsx-schema doctor`.
 Install Compound adapters by adding `-a <host>`:
 
 ```bash
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install compound-intent-driven \
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas install compound-intent-driven \
   -t . -sk -a <opencode|senpi|pi|atomic> -i
 ```
 
@@ -92,7 +92,7 @@ After explicit approval, use `--mcp <all|name[,name...]>` with `-a|--agents`
 or aliases as MCP host selector:
 
 ```sh
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install intent-driven-design \
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas install intent-driven-design \
   -t . --mcp all -a opencode
 ```
 
@@ -135,14 +135,14 @@ Install the destination schema first if the project doesn't already have it.
 Then preview the change-local update from the project directory:
 
 ```bash
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas set-change-schema <change> <schema> -t .
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas set-change-schema <change> <schema> -t .
 ```
 
 The command is a dry run unless `--apply` is present. It reports compatibility
 and planned mutation without changing files. Apply a compatible update with:
 
 ```bash
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas set-change-schema <change> <schema> -t . --apply
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas set-change-schema <change> <schema> -t . --apply
 ```
 
 The native equivalent is `opsx-schema handoff <change> <schema>`. It uses

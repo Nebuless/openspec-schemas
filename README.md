@@ -5,6 +5,26 @@ Copyable workflow schemas for
 built-in `spec-driven` workflow. This package adds nine focused alternatives
 for different delivery styles.
 
+## Provenance
+
+This repository is a Nebuless-maintained fork and extension of
+[Hari Krishnan's OpenSpec Custom Schemas](https://github.com/intent-driven-dev/openspec-schemas),
+originally published by [Hari Krishnan](https://github.com/harikrishnan83).
+The upstream baseline content uses five named schemas: `minimalist`,
+`event-driven`, `spec-driven-with-adr`, `behaviour-driven`, and
+`intent-driven`. [Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec)
+is the underlying OpenSpec platform, not the source of this schema collection.
+
+Fork additions include:
+
+- npm package and `openspec-schemas` CLI
+- `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, and `intent-driven-design`
+- Compound adapters
+- source-aware skill installer
+- guarded schema switching and managed skills
+- opt-in MCP catalogs
+- `opsx-schema` CLI and optional view
+
 ## Choosing a Schema
 
 Start with `spec-driven` for most projects. Choose `intent-driven` when complex
@@ -38,7 +58,7 @@ companion skill for fenced-Gherkin authoring and executable acceptance testing.
 
 ## Install a Schema
 
-Package source is version `0.1.9`. Registry tags remain `0.1.8` on `beta` and `0.1.5` on `latest`. This source version is unreleased and not published. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
+Package source is version `1.8.0`. Registry state is released `0.1.9` on `beta`, with `1.8.0` prepared for `latest`. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
 required. `opsx-schema view` additionally requires Node.js >=26.4, Linux x64
 glibc, a non-dumb TTY, and the optional OpenTUI runtime. The package manifest
 retains `@opentui/core@0.5.11` and `web-tree-sitter@0.25.10` as optional
@@ -47,7 +67,7 @@ dependencies for package-manager installs.
 Install and activate a schema from your project directory:
 
 ```sh
-nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas install <schema-name> -t . -i
+nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas install <schema-name> -t . -i
 ```
 
 Each package includes a `skills.txt` manifest. Skills and Compound host adapters
@@ -97,7 +117,7 @@ dependencies in the consumer package manifest before the first Nub install:
 ```json
 {
   "dependencies": {
-    "@nebulesstech/openspec-schemas": "0.1.9"
+    "@nebulesstech/openspec-schemas": "1.8.0"
   },
   "optionalDependencies": {
     "@opentui/core": "0.5.11",
@@ -106,7 +126,7 @@ dependencies in the consumer package manifest before the first Nub install:
 }
 ```
 
-Keep the consumer lockfile and use `nub install --frozen` for repeats. A bare local
+Keep the consumer lockfile and use `nub install --frozen-lockfile` for repeats. A bare local
 tar Nub install may omit package optional edges; schema-copy `nub dlx` does not
 create a persistent view runtime. Core commands remain Node >=20 and support
 `--no-optional` when OpenTUI is not needed. Use

@@ -1,6 +1,6 @@
 {
   "name": "@nebulesstech/openspec-schemas",
-  "version": "0.1.9",
+  "version": "1.8.0",
   "description": "Copyable OpenSpec workflow schemas and optional companion adapters",
   "license": "MIT",
   "repository": {
@@ -32,7 +32,7 @@
   ],
   "publishConfig": {
     "access": "public",
-    "tag": "beta"
+    "tag": "latest"
   },
   "scripts": {
     "test": "node scripts/test-artifact-layout.js && sh scripts/test-compound-adapters.sh && sh scripts/test-install-compound-adapters.sh && sh scripts/test-install-schema-skills.sh && node scripts/test-release.js && node scripts/test-release-checks.js && node scripts/test-opsx-view.js",

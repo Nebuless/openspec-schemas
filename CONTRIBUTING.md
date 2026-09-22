@@ -132,17 +132,17 @@ anything itself. Remove hooks with
 `git config --local --unset core.hooksPath`. CI is a thin GitHub wrapper around
 the same portable commands; no publishing or cloud upload is configured.
 
-## Manual Beta Release Checklist
+## Manual Release Checklist
 
-Current registry state: `0.1.8` is `beta`; `0.1.5` is `latest`. Local beta candidate: `0.1.9`, not yet published. For the next beta:
+Current registry state: released `0.1.9` is `beta`; stable `1.8.0` is the `latest` candidate. Use `beta` for beta publication and `latest` only for an approved stable release.
 
 1. Confirm ownership/access for `@nebulesstech/openspec-schemas`, review MIT licensing, and choose a new unpublished version.
-2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta`; do not move `latest` implicitly.
+2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta` for beta releases. Set `latest` only after explicit stable approval.
 3. Run `nub run test` and `nub run check --require-qlty`.
 4. Review the allowlisted payload: CLI, two installers, schemas, declared host adapters, docs, license. No local runtime state, credentials, `.omo`, or root lockfile.
 5. In a temporary directory, unpack a local tarball with `tar`, then exercise list, verify, and installation with an already installed OpenSpec CLI. Keep clean install and lockfile unchanged unless dependency metadata intentionally changed.
-6. Publish manually only after review and authorization, explicitly using the `beta` tag and public access. No release credentials belong in this repository or workflow.
-7. Inspect release artifact manually, then smoke-test beta with `nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@beta openspec-schemas list` and verify its dist-tag. Promotion to `latest` is a separate explicit decision.
+6. Publish manually only after review and authorization, explicitly using the selected channel tag and public access. No release credentials belong in this repository or workflow.
+7. Inspect release artifact manually, then smoke-test the selected channel with `nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas list` and verify its dist-tag. Use `latest` only for an approved stable release.
 
 ## Schema PR Checklist
 

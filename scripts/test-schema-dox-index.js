@@ -25,8 +25,9 @@ const unreleased = changelog.split('## [Unreleased]\n')[1]?.split(/\n## \[/)[0];
 assert(unreleased, 'missing Unreleased section');
 const added = unreleased.split('### Added\n')[1]?.split(/\n### /)[0];
 assert(added, 'missing Unreleased Added section');
-const feature = '- Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.';
-assert.equal(added.split('\n').filter(line => line === feature).length, 1, 'Unreleased Added must contain one intent-driven-design feature line');
-assert(!added.includes('- No changes yet.'), 'nonempty Unreleased Added must not retain placeholder');
+assert.equal(added.trim(), '- No changes yet.', 'Unreleased Added must remain an explicit placeholder');
+const released = changelog.split('## [0.1.9] - ')[1]?.split(/\n## \[/)[0];
+assert(released, 'missing released 0.1.9 section');
+assert(released.includes('- Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.'), 'released section must contain intent-driven-design feature');
 
 console.log(`test-schema-dox-index: ${schemas.length} schema rows and Unreleased feature passed`);
