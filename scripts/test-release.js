@@ -7,12 +7,17 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'schemas-release-'));
 const designSchema = 'intent-driven-design';
-const designSchemaFiles = ['README.md', 'schema.yaml', 'skills.txt', 'templates/adr.md', 'templates/design.md', 'templates/journey.md', 'templates/proposal.md', 'templates/spec.md', 'templates/tasks.md'].map(file => `openspec/schemas/${designSchema}/${file}`);
+const designSchemaFiles = ['README.md', 'mcp.yaml', 'schema.yaml', 'skills.txt', 'templates/adr.md', 'templates/design.md', 'templates/journey.md', 'templates/proposal.md', 'templates/spec.md', 'templates/tasks.md'].map(file => `openspec/schemas/${designSchema}/${file}`);
 function write(file, text) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text, { mode: 0o755 }); }
 function run(command, args, options = {}) {
   return spawnSync(command, args, { cwd: root, encoding: 'utf8', ...options });
 }
 function ok(result) { assert.equal(result.status, 0, result.stderr + result.stdout); }
+const snapshot = directory => fs.readdirSync(directory).sort().map(name => {
+  const file = path.join(directory, name);
+  const info = fs.lstatSync(file);
+  return [name, info.mode, info.isSymbolicLink() ? fs.readlinkSync(file) : info.isDirectory() ? snapshot(file) : fs.readFileSync(file).toString('hex')];
+});
 try {
   const tools = path.join(tmp, 'tools');
   write(path.join(tools, 'openspec'), `#!${process.execPath}
@@ -85,8 +90,81 @@ if (args[0] === 'status') {
   assert.match(fs.readFileSync(path.join(agentAliasTarget, '.opencode/commands/opsx-ce-plan.md'), 'utf8'), /openspec/);
   assert.notEqual(cli(['install', 'minimalist', '-a', 'pi']).status, 0);
   assert.notEqual(cli(['install', 'compound-intent-driven', '-a']).status, 0);
-  assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'invalid']).status, 0);
-  assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'pi', '--host', 'atomic']).status, 0);
+   assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'invalid']).status, 0);
+   assert.notEqual(cli(['install', 'compound-intent-driven', '-a', 'pi', '--host', 'atomic']).status, 0);
+   const mcpEntries = {
+      atomic: { file: '.mcp.json', value: { mcpServers: { inspo: { url: 'https://inspomcp.dev/api/mcp' }, 'ui-skills': { url: 'https://www.ui-skills.com/mcp' } } } },
+      omp: { file: '.omp/mcp.json', value: { mcpServers: { inspo: { type: 'http', url: 'https://inspomcp.dev/api/mcp' }, 'ui-skills': { type: 'http', url: 'https://www.ui-skills.com/mcp' } } } },
+      opencode: { file: 'opencode.jsonc', value: { mcp: { inspo: { type: 'remote', url: 'https://inspomcp.dev/api/mcp' }, 'ui-skills': { type: 'remote', url: 'https://www.ui-skills.com/mcp' } } } },
+   };
+   for (const [host, expected] of Object.entries(mcpEntries)) {
+     const mcpTarget = path.join(tmp, `mcp ${host}`);
+     write(path.join(mcpTarget, 'sentinel'), 'keep');
+     ok(cli(['install', designSchema, '-t', mcpTarget, '--mcp', 'all', '-a', host]));
+     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpTarget, expected.file), 'utf8')), expected.value);
+     assert.equal(fs.existsSync(path.join(mcpTarget, '.opencode/commands/opsx-ce-plan.md')), false);
+     assert.equal(fs.readFileSync(path.join(mcpTarget, 'sentinel'), 'utf8'), 'keep');
+   }
+   const selectedMcpTarget = path.join(tmp, 'mcp selected');
+   ok(cli(['install', designSchema, '-t', selectedMcpTarget, '--mcp', 'inspo', '-a', 'atomic']));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(selectedMcpTarget, '.mcp.json'), 'utf8')), { mcpServers: { inspo: { url: 'https://inspomcp.dev/api/mcp' } } });
+   const aliasMcpTarget = path.join(tmp, 'mcp alias');
+   ok(cli(['install', designSchema, '-t', aliasMcpTarget, '--mcp', 'inspo', '--agents', 'atomic']));
+   assert.equal(fs.existsSync(path.join(aliasMcpTarget, '.mcp.json')), true);
+   const hostAliasMcpTarget = path.join(tmp, 'mcp host alias');
+   ok(cli(['install', designSchema, '-t', hostAliasMcpTarget, '--mcp', 'inspo', '--agent', 'omp']));
+   assert.equal(fs.existsSync(path.join(hostAliasMcpTarget, '.omp/mcp.json')), true);
+   const detectedMcpTarget = path.join(tmp, 'mcp detected');
+   write(path.join(detectedMcpTarget, '.omp/existing'), 'keep');
+   ok(cli(['install', designSchema, '-t', detectedMcpTarget, '--mcp', 'ui-skills']));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(detectedMcpTarget, '.omp/mcp.json'), 'utf8')), { mcpServers: { 'ui-skills': { type: 'http', url: 'https://www.ui-skills.com/mcp' } } });
+   const ambiguousMcpTarget = path.join(tmp, 'mcp ambiguous');
+   write(path.join(ambiguousMcpTarget, '.omp/existing'), 'keep'); write(path.join(ambiguousMcpTarget, '.pi/existing'), 'keep');
+   const ambiguousMcpBefore = snapshot(ambiguousMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', ambiguousMcpTarget, '--mcp', 'all']).status, 0); assert.deepEqual(snapshot(ambiguousMcpTarget), ambiguousMcpBefore);
+   assert.notEqual(cli(['install', designSchema, '-t', path.join(tmp, 'mcp missing host'), '--mcp', 'all']).status, 0);
+   assert.notEqual(cli(['install', 'minimalist', '-t', path.join(tmp, 'mcp absent catalog'), '--mcp', 'all', '-a', 'atomic']).status, 0);
+   assert.notEqual(cli(['install', designSchema, '-t', path.join(tmp, 'mcp unknown'), '--mcp', 'missing', '-a', 'atomic']).status, 0);
+   const mcpCollisionTarget = path.join(tmp, 'mcp collision');
+   write(path.join(mcpCollisionTarget, '.mcp.json'), JSON.stringify({ mcpServers: { inspo: { url: 'https://wrong.example/mcp' }, unrelated: { url: 'https://keep.example/mcp' } } }, null, 2));
+   const mcpCollisionBefore = snapshot(mcpCollisionTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', mcpCollisionTarget, '--mcp', 'inspo', '-a', 'atomic']).status, 0); assert.deepEqual(snapshot(mcpCollisionTarget), mcpCollisionBefore);
+   ok(cli(['install', designSchema, '-t', mcpCollisionTarget, '--mcp', 'inspo', '-a', 'atomic', '--force']));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpCollisionTarget, '.mcp.json'), 'utf8')), { mcpServers: { inspo: { url: 'https://inspomcp.dev/api/mcp' }, unrelated: { url: 'https://keep.example/mcp' } } });
+    const mcpNoop = snapshot(mcpCollisionTarget); ok(cli(['install', designSchema, '-t', mcpCollisionTarget, '--mcp', 'inspo', '-a', 'atomic', '--force'])); assert.deepEqual(snapshot(mcpCollisionTarget), mcpNoop);
+    const mcpOptInTarget = path.join(tmp, 'mcp opt in');
+    ok(cli(['install', designSchema, '-t', mcpOptInTarget]));
+    const installedSchema = snapshot(path.join(mcpOptInTarget, 'openspec/schemas', designSchema));
+    ok(cli(['install', designSchema, '-t', mcpOptInTarget, '--mcp', 'inspo', '-a', 'opencode']));
+    assert.deepEqual(snapshot(path.join(mcpOptInTarget, 'openspec/schemas', designSchema)), installedSchema);
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpOptInTarget, 'opencode.jsonc'), 'utf8')), { mcp: { inspo: { type: 'remote', url: 'https://inspomcp.dev/api/mcp' } } });
+    const failMcpWrite = path.join(tmp, 'fail-mcp-write.js');
+    write(failMcpWrite, `'use strict';
+const fs = require('node:fs');
+const renameSync = fs.renameSync;
+fs.renameSync = (source, destination) => {
+  if (destination === process.env.FAIL_MCP_DESTINATION) throw new Error('injected MCP config write failure');
+  return renameSync(source, destination);
+};
+`);
+    const atomicMcpTarget = path.join(tmp, 'mcp atomic failure');
+    const atomicMcpConfig = path.join(atomicMcpTarget, 'opencode.jsonc');
+    write(atomicMcpConfig, '{}\n');
+    write(path.join(atomicMcpTarget, 'openspec/config.yaml'), 'schema: old\n');
+    const atomicMcpBefore = snapshot(atomicMcpTarget);
+    assert.notEqual(cli(['install', designSchema, '-t', atomicMcpTarget, '--mcp', 'inspo', '-a', 'opencode', '--activate'], { NODE_OPTIONS: `--require=${failMcpWrite}`, FAIL_MCP_DESTINATION: atomicMcpConfig }).status, 0);
+    assert.deepEqual(snapshot(atomicMcpTarget), atomicMcpBefore);
+   const jsoncTarget = path.join(tmp, 'mcp jsonc');
+   const jsonc = '{\n  // keep\n  "mcp": {}\n}\n'; write(path.join(jsoncTarget, 'opencode.jsonc'), jsonc);
+   const jsoncBefore = snapshot(jsoncTarget); assert.notEqual(cli(['install', designSchema, '-t', jsoncTarget, '--mcp', 'inspo', '-a', 'opencode']).status, 0); assert.deepEqual(snapshot(jsoncTarget), jsoncBefore);
+   const malformedMcpTarget = path.join(tmp, 'mcp malformed'); write(path.join(malformedMcpTarget, '.mcp.json'), '{'); const malformedMcpBefore = snapshot(malformedMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', malformedMcpTarget, '--mcp', 'inspo', '-a', 'atomic']).status, 0); assert.deepEqual(snapshot(malformedMcpTarget), malformedMcpBefore);
+   const mapMcpTarget = path.join(tmp, 'mcp map mismatch'); write(path.join(mapMcpTarget, '.mcp.json'), JSON.stringify({ mcpServers: [] })); const mapMcpBefore = snapshot(mapMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', mapMcpTarget, '--mcp', 'inspo', '-a', 'atomic']).status, 0); assert.deepEqual(snapshot(mapMcpTarget), mapMcpBefore);
+   const linkedMcpTarget = path.join(tmp, 'mcp symlink'); write(path.join(linkedMcpTarget, 'outside'), '{}'); fs.symlinkSync(path.join(linkedMcpTarget, 'outside'), path.join(linkedMcpTarget, '.mcp.json')); const linkedMcpBefore = snapshot(linkedMcpTarget);
+   assert.notEqual(cli(['install', designSchema, '-t', linkedMcpTarget, '--mcp', 'inspo', '-a', 'atomic', '--force']).status, 0); assert.deepEqual(snapshot(linkedMcpTarget), linkedMcpBefore);
+   const piMcpTarget = path.join(tmp, 'mcp pi'); write(path.join(piMcpTarget, '.pi/existing'), 'keep'); const piMcpBefore = snapshot(piMcpTarget);
+   const piMcp = cli(['install', designSchema, '-t', piMcpTarget, '--mcp', 'all', '-a', 'pi']); ok(piMcp); assert.match(piMcp.stdout, /guided-only/); assert.deepEqual(snapshot(piMcpTarget).filter(([name]) => name !== 'openspec'), piMcpBefore);
   const project = path.join(tmp, 'switch project');
   const changeRoot = path.join(project, 'openspec/changes/authoritative-root');
   const metadata = path.join(changeRoot, '.openspec.yaml');
@@ -100,12 +178,7 @@ if (args[0] === 'status') {
   const destination = { ...source, schemaName: 'custom-local' };
   const statusEnv = { SOURCE_STATUS: JSON.stringify(source), TARGET_STATUS: JSON.stringify(destination), STATUS_METADATA: metadata, STATUS_ORIGINAL: original };
   const switchArgs = ['set-change-schema', 'example', 'custom-local', '-t', project];
-  const snapshot = directory => fs.readdirSync(directory).sort().map(name => {
-    const file = path.join(directory, name);
-    const info = fs.lstatSync(file);
-    return [name, info.mode, info.isSymbolicLink() ? fs.readlinkSync(file) : info.isDirectory() ? snapshot(file) : fs.readFileSync(file).toString('hex')];
-  });
-  const before = snapshot(project);
+   const before = snapshot(project);
   const log = path.join(tmp, 'status-calls');
   ok(cli(switchArgs, { ...statusEnv, CALL_LOG: log }));
   assert.deepEqual(snapshot(project), before);
@@ -179,7 +252,7 @@ if (args[0] === 'status') {
   write(metadata, original);
   fs.chmodSync(metadata, 0o640);
   assert.deepEqual(snapshot(project), before);
-  const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE']);
+  const packageFiles = new Set(['package.json', 'README.md', 'AGENT_INSTALL.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE', 'bin/mcp-config.js']);
   const tracked = run('git', ['ls-files', '-z']);
   ok(tracked);
   for (const file of tracked.stdout.split('\0').filter(Boolean)) {
@@ -218,6 +291,13 @@ if (args[0] === 'status') {
   write(path.join(symlinkTarget, 'sentinel'), 'keep'); fs.mkdirSync(path.join(symlinkTarget, 'openspec/schemas'), { recursive: true }); fs.symlinkSync(tmp, path.join(symlinkTarget, `openspec/schemas/${designSchema}`));
   const symlinkBefore = snapshot(symlinkTarget);
   assert.notEqual(packedCli(['install', designSchema, '--target', symlinkTarget, '--force']).status, 0); assert.deepEqual(snapshot(symlinkTarget), symlinkBefore); ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'validate'], { env })); ok(run(process.execPath, [path.join(extracted, 'bin/openspec-schemas.js'), 'verify'], { env }));
+  const packedCatalog = path.join(extracted, `openspec/schemas/${designSchema}/mcp.yaml`);
+  const validCatalog = fs.readFileSync(packedCatalog, 'utf8');
+  fs.writeFileSync(packedCatalog, validCatalog.replace('auth: none', 'auth: bearer-token'));
+  assert.notEqual(packedCli(['validate', designSchema]).status, 0);
+  assert.notEqual(packedCli(['verify']).status, 0);
+  fs.writeFileSync(packedCatalog, validCatalog.replace('version: 1', 'version: 2'));
+  assert.notEqual(packedCli(['validate', designSchema]).status, 0);
   const fixture = path.join(tmp, 'quality');
   fs.mkdirSync(path.join(fixture, 'scripts'), { recursive: true });
   for (const file of ['quality.sh', 'install-git-hooks.sh', 'lint-markdown.js', 'update-changelog.js']) fs.copyFileSync(path.join(root, 'scripts', file), path.join(fixture, 'scripts', file));

@@ -53,6 +53,10 @@ are optional. See the [agent install guide](./AGENT_INSTALL.md) for complete
 prerequisites, install choices, collision rules, skills, adapters, and local or
 unreleased fallback.
 
+Schemas may also include a strict read-only `mcp.yaml` catalog. After explicit
+approval, install selected catalog entries with `--mcp` and `-a`; see the agent
+install guide for host detection, safe config behavior, and Pi guidance.
+
 ## After Installation
 
 The package installer copies the selected schema into your project. With `-i`,
@@ -85,6 +89,7 @@ Schema folders are self-contained and copyable. Each contains:
 schema.yaml
 README.md
 skills.txt
+mcp.yaml (optional)
 templates/
 ```
 

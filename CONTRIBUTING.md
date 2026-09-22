@@ -64,13 +64,15 @@ node bin/openspec-schemas.js list
 node bin/openspec-schemas.js validate <schema-name>
 node bin/openspec-schemas.js verify
 node bin/openspec-schemas.js install <schema-name> -t /path/to/project -i
+node bin/openspec-schemas.js install intent-driven-design -t /path/to/project --mcp all -a opencode
 node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project
 node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/project --apply
 ```
 
 `list` works without OpenSpec. `validate`, `verify`, and `install` require an
 installed OpenSpec CLI. Use `validate <schema-name>` for one changed schema;
-`verify` remains the compatibility check for every packaged schema. Published
+`verify` remains the compatibility check for every packaged schema. Both
+commands also validate optional `mcp.yaml` catalog security metadata. Published
 usage is Nub-first. See [`AGENT_INSTALL.md`](./AGENT_INSTALL.md) for package
 installation, change-local schema updates, optional skills and adapters, and
 local fallback details. `set-change-schema` is a dry run by default. Applying

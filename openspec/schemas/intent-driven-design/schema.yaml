@@ -16,9 +16,18 @@ artifacts:
       sibling change IDs, and reconciliation receipts. This is design-state
       evidence, not an implementation checklist or parallel task tracker.
 
-      Agent protocol requires explicit user pauses after discovery, route
-      selection, direction selection, accepted loopback, and pre-task handoff.
-      These pauses are agent behavior, not OpenSpec engine enforcement.
+       Agent protocol requires explicit user pauses after discovery, route
+       selection, direction selection, accepted loopback, and pre-task handoff.
+       These pauses are agent behavior, not OpenSpec engine enforcement.
+
+       When this schema's optional MCP catalog is relevant, inspect project host
+       evidence. Reuse explicit current or prior user approval for MCP setup; if
+       none exists, ask once before configuration. After approval, invoke the
+       installer with `--mcp <all|catalog-name[,catalog-name...]>` and the chosen
+       `-a|--agents <host>`. Record host, evidence, approval source, target,
+       selected servers, per-server result, validation, and fallback in journey.
+       Never configure before approval. Pi has no native MCP configuration and is
+       guided-only until the user selects a compatible Pi extension.
 
       File existence is OpenSpec completion evidence. Editing a predecessor does
       not semantically invalidate, reopen, reconcile, or delete downstream

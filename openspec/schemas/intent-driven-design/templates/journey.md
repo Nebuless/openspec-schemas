@@ -29,6 +29,14 @@
 - Accepted loopback: <!-- user decision and date, or none -->
 - Pre-task handoff: <!-- user decision and date -->
 
+## MCP Receipt
+
+- Approval: <!-- current or prior user approval, decline, or ask once -->
+- Host and evidence: <!-- detected or user-selected host and project evidence -->
+- Config target: <!-- target path, or guided-only -->
+- Catalog and result: <!-- selected names, endpoints, per-server result -->
+- Validation and fallback: <!-- parsed config/result, or non-MCP research path -->
+
 ## Loopback History
 
 <!-- For each accepted loopback: trigger, target artifact, user approval, affected outputs, and manual repair result. File existence alone does not semantically invalidate downstream outputs. -->

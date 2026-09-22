@@ -47,7 +47,7 @@ for (const [id, generates, template, requires] of expectedArtifacts) {
 }
 assert.match(designSchema, /^apply:\n  requires:\n    - tasks\n  tracks: tasks\.md$/m);
 const journey = fs.readFileSync(path.join(designSchemaRoot, 'templates/journey.md'), 'utf8');
-for (const heading of ['Material Decisions', 'Grilling Receipt', 'Route Selection', 'Approval Receipts', 'Loopback History', 'Sibling Changes', 'Reconciliation Receipts']) {
+for (const heading of ['Material Decisions', 'Grilling Receipt', 'Route Selection', 'Approval Receipts', 'MCP Receipt', 'Loopback History', 'Sibling Changes', 'Reconciliation Receipts']) {
   assert(journey.includes(`## ${heading}`), `journey.md: missing ${heading}`);
 }
 assert.doesNotMatch(journey, /^\s*- \[[ x]\]/m, 'journey.md must not track implementation tasks');
