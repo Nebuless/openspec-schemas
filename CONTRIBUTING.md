@@ -71,7 +71,8 @@ node bin/openspec-schemas.js set-change-schema <change> <schema> -t /path/to/pro
 
 `list` works without OpenSpec. `validate`, `verify`, and `install` require an
 installed OpenSpec CLI. Use `validate <schema-name>` for one changed schema;
-`verify` remains the compatibility check for every packaged schema. Published
+`verify` remains the compatibility check for every packaged schema. Both
+commands also validate optional `mcp.yaml` catalog security metadata. Published
 usage is Nub-first. See [`AGENT_INSTALL.md`](./AGENT_INSTALL.md) for package
 installation, change-local schema updates, optional skills and adapters, and
 local fallback details. `set-change-schema` is a dry run by default. Applying

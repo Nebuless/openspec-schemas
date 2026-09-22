@@ -132,7 +132,7 @@ function main() {
     if (args.length) throw new Error('unexpected arguments');
     for (const name of names()) {
       if (command === 'list') console.log(name);
-      else run('openspec', ['schema', 'validate', name], root);
+      else { run('openspec', ['schema', 'validate', name], root); mcp.validateCatalog(path.join(schemas, name)); }
     }
     return;
   }
@@ -140,7 +140,7 @@ function main() {
     if (args.length > 1) throw new Error('unexpected arguments');
     const name = args[0];
     if (name && !names().includes(name)) throw new Error(`unknown schema: ${name}`);
-    for (const schema of name ? [name] : names()) run('openspec', ['schema', 'validate', schema], root);
+    for (const schema of name ? [name] : names()) { run('openspec', ['schema', 'validate', schema], root); mcp.validateCatalog(path.join(schemas, schema)); }
     return;
   }
   if (command === 'set-change-schema') return setChangeSchema(args);
@@ -186,13 +186,15 @@ function main() {
   }
   const source = path.join(schemas, name);
   const destination = path.join(target, 'openspec/schemas', name);
+  const installed = stat(destination);
   if (mcpSelector) {
     mcpInstall = mcp.plan(target, source, mcpSelector, host, force);
   } else if (host && (!Object.hasOwn(hosts, host) || name !== 'compound-intent-driven')) {
     throw new Error('--host requires compound-intent-driven and a supported host');
   }
   if (destination === source || source.startsWith(destination + path.sep)) throw new Error('source and destination overlap');
-  collision(destination, force, true);
+  if (mcpSelector && installed) collision(destination, true, true);
+  else collision(destination, force, true);
   if (host && !mcpSelector) {
     for (const file of fs.readdirSync(path.join(root, hosts[host])).filter(file => /^opsx-ce-.*\.md$/.test(file))) {
       collision(path.join(target, hosts[host], file), force, false);
@@ -209,10 +211,11 @@ function main() {
     }
   }
   const config = path.join(target, 'openspec/config.yaml');
-  let updated;
+  let updated, originalConfig;
   if (activate) {
     collision(config, true, false);
-    const text = fs.readFileSync(config, 'utf8');
+    originalConfig = fs.readFileSync(config);
+    const text = originalConfig.toString('utf8');
     const lines = text.split('\n');
     const candidates = lines.filter(line => /^(?:schema\s*:|["']schema["']\s*:|<<\s*:|---|\.\.\.)/.test(line));
     const simple = /^schema:([ \t]+)[a-zA-Z0-9_-]+([ \t]*(?:#[^\r\n]*)?)(\r?)$/;
@@ -220,15 +223,28 @@ function main() {
     updated = lines.map(line => simple.test(line) ? line.replace(simple, `schema:$1${name}$2$3`) : line).join('\n');
   }
   run('openspec', ['schema', 'validate', name], root);
-  if (stat(destination)) fs.rmSync(destination, { recursive: true });
-  fs.mkdirSync(path.dirname(destination), { recursive: true });
-  fs.cpSync(source, destination, { recursive: true });
-  const extra = force ? ['--force'] : [];
-  if (skills) run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
-  if (host && !mcpSelector) run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
-  run('openspec', ['schema', 'validate', name], target);
-  if (updated !== undefined) fs.writeFileSync(config, updated);
-  if (mcpInstall) mcp.write(mcpInstall);
+  const replaceSchema = !(mcpSelector && installed);
+  const backup = replaceSchema && installed ? `${destination}.${require('node:crypto').randomUUID()}.backup` : undefined;
+  const createdParents = [path.dirname(destination), path.dirname(path.dirname(destination))].filter(directory => !stat(directory));
+  try {
+    if (replaceSchema) {
+      if (backup) fs.renameSync(destination, backup);
+      fs.mkdirSync(path.dirname(destination), { recursive: true }); fs.cpSync(source, destination, { recursive: true });
+    }
+    const extra = force ? ['--force'] : [];
+    if (skills) run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
+    if (host && !mcpSelector) run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
+    run('openspec', ['schema', 'validate', name], target);
+    if (updated !== undefined) fs.writeFileSync(config, updated);
+    if (mcpInstall) mcp.write(mcpInstall);
+    if (backup) fs.rmSync(backup, { recursive: true });
+  } catch (error) {
+    if (replaceSchema && stat(destination)) fs.rmSync(destination, { recursive: true });
+    if (backup) fs.renameSync(backup, destination);
+    if (updated !== undefined) fs.writeFileSync(config, originalConfig);
+    for (const directory of createdParents) try { fs.rmdirSync(directory); } catch (cleanupError) { if (!['ENOENT', 'ENOTEMPTY'].includes(cleanupError.code)) throw cleanupError; }
+    throw error;
+  }
   console.log(`Installed ${name} in ${destination}`);
 }
 try { main(); } catch (error) { console.error(`openspec-schemas: ${error.message}`); process.exitCode = 1; }

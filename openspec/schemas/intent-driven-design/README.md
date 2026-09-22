@@ -188,10 +188,12 @@ openspec-schemas install intent-driven-design -t . --mcp all -a <atomic|omp|open
 Use `--mcp inspo` or `--mcp ui-skills` for one catalog entry. `-a|--agents`
 selects host. Atomic writes `.mcp.json`; Oh My Pi writes `.omp/mcp.json`;
 OpenCode writes an existing sole project config or `opencode.jsonc`. Existing
-server entries are preserved. A different selected entry stops unless `--force`
+server entries are preserved as direct `mcp.<server>` remote entries. A
+different selected entry stops unless `--force`
 explicitly replaces that entry alone. Pi has no native MCP config: setup is
 guided-only until user selects compatible Pi extension. No catalog use means no
-host detection or MCP config mutation.
+host detection or MCP config mutation. A later MCP opt-in reuses an installed
+schema without requiring schema replacement or `--force`.
 
 ## Associated Skills
 

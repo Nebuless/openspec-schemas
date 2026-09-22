@@ -22,6 +22,8 @@ Schema directories own workflow artifact graphs, templates, companion skill decl
 `skills.txt` may be empty. Every artifact declared by `schema.yaml` needs its declared template at the matching path.
 `mcp.yaml` is optional strict version `1` remote catalog metadata: unique
 lowercase-hyphen names, HTTPS endpoints, `readOnly: true`, and `auth: none`.
+Package `validate` and `verify` commands enforce this catalog contract in
+addition to OpenSpec schema validation.
 
 ## Work Guidance
 

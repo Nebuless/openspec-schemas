@@ -33,20 +33,31 @@ function selectedCatalog(source, selector) {
   if (!info.isFile() || info.isSymbolicLink()) throw new Error(`unsafe MCP catalog: ${file}`);
   const entries = [];
   let current;
-  for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
-    if (!line || /^#/.test(line) || line === 'version: 1' || line === 'servers:') continue;
+  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(line => line && !/^#/.test(line));
+  if (lines.shift() !== 'version: 1' || lines.shift() !== 'servers:') throw new Error('invalid mcp.yaml catalog');
+  for (const line of lines) {
     let match = /^  - name: ([a-z][a-z0-9-]*)$/.exec(line);
     if (match) { current = { name: match[1] }; entries.push(current); continue; }
     match = /^    (url|readOnly|auth): (.+)$/.exec(line);
-    if (!match || !current) throw new Error('invalid mcp.yaml catalog');
+    if (!match || !current || current[match[1]] !== undefined) throw new Error('invalid mcp.yaml catalog');
     current[match[1]] = match[2];
   }
-  if (!entries.length || new Set(entries.map(entry => entry.name)).size !== entries.length || entries.some(entry => !/^https:\/\/[^\s]+$/.test(entry.url || '') || entry.readOnly !== 'true' || entry.auth !== 'none')) throw new Error('invalid mcp.yaml catalog');
+  if (!entries.length || new Set(entries.map(entry => entry.name)).size !== entries.length || entries.some(entry => {
+    try {
+      const endpoint = new URL(entry.url);
+      return endpoint.protocol !== 'https:' || endpoint.username || endpoint.password || entry.readOnly !== 'true' || entry.auth !== 'none';
+    } catch { return true; }
+  })) throw new Error('invalid mcp.yaml catalog');
   const names = selector === 'all' ? entries.map(entry => entry.name) : selector.split(',');
   if (!names.length || names.some(name => !/^[a-z][a-z0-9-]*$/.test(name)) || new Set(names).size !== names.length) throw new Error('--mcp expects all or comma-separated catalog names');
   const selected = names.map(name => entries.find(entry => entry.name === name));
   if (selected.some(entry => !entry)) throw new Error(`unknown MCP catalog name: ${names.find((_, index) => !selected[index])}`);
   return selected;
+}
+
+function validateCatalog(source) {
+  const file = path.join(source, 'mcp.yaml');
+  if (stat(file)) selectedCatalog(source, 'all');
 }
 
 function detectedHost(target) {
@@ -80,14 +91,8 @@ function plan(target, source, selector, requestedHost, force) {
   }
   const rootKey = host === 'opencode' ? 'mcp' : 'mcpServers';
   let servers = config[rootKey];
-  if (host === 'opencode') {
-    if (servers === undefined) servers = config[rootKey] = {};
-    else object(servers, 'OpenCode mcp map');
-    if (servers.servers === undefined) servers.servers = {};
-    else object(servers.servers, 'OpenCode mcp.servers map');
-    servers = servers.servers;
-  } else if (servers === undefined) servers = config[rootKey] = {};
-  else object(servers, 'mcpServers map');
+  if (servers === undefined) servers = config[rootKey] = {};
+  else object(servers, host === 'opencode' ? 'OpenCode mcp map' : 'mcpServers map');
   let changed = false;
   for (const entry of entries) {
     const expected = host === 'omp' ? { type: 'http', url: entry.url } : host === 'opencode' ? { type: 'remote', url: entry.url } : { url: entry.url };
@@ -115,4 +120,4 @@ function write(plan) {
   } finally { if (stat(temporary)) fs.unlinkSync(temporary); }
 }
 
-module.exports = { plan, write };
+module.exports = { plan, validateCatalog, write };

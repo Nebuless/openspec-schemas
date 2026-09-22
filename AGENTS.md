@@ -62,7 +62,10 @@ maintainers and shell installers for local or unreleased fallback only.
 With `--mcp`, selectors instead choose `atomic`, `omp`, `opencode`, or `pi`;
 MCP installs never run Compound adapters. Host config preflight precedes all
 mutations, Pi is guided-only, and OpenCode JSONC is accepted only when JSON or
-empty/new so comments are never stripped.
+empty/new so comments are never stripped. OpenCode servers are direct
+`mcp.<server>` entries. Public `validate` and `verify` include optional catalog
+security validation. Later MCP opt-in reuses an installed schema without
+`--force`; a failed MCP config write leaves no partial schema install.
 
 ## Verification
 

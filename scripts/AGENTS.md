@@ -20,7 +20,8 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 - Shell: POSIX `sh`, `set -eu`, quote paths, support spaces, no Bash features.
 - Preflight all files before mutation. Reject unsafe links, overlap, malformed paths, and undeclared collisions.
 - `--force` replaces only declared regular targets; never delete unrelated files or follow symlinks.
-- MCP config preflight completes before schema copy; remote catalogs contain no auth, headers, secrets, or network calls.
+- MCP config preflight completes before schema copy; failed config writes roll back schema installation, and later MCP opt-in reuses an installed schema without `--force`.
+- Public schema validation includes optional catalog checks; remote catalogs contain no auth, headers, secrets, or network calls.
 - `set-change-schema` dry-runs unless `--apply` is explicit, updates only the selected change's `.openspec.yaml`, and gates graph mismatches behind `--allow-incompatible`.
 - Tests may intentionally print expected installer errors. Assert exit status, safety, and no partial mutation.
 - Keep scripts executable when used as hooks/installers.

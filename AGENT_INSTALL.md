@@ -62,12 +62,28 @@ for `compound-intent-driven`. MCP installation never installs Compound adapters.
 If host is omitted, installer accepts exactly one target evidence candidate or
 refuses before mutation. Atomic writes `.mcp.json` URL entries; OMP writes
 `.omp/mcp.json` HTTP entries; OpenCode writes sole `opencode.json` or
-`opencode.jsonc` candidate, otherwise root `opencode.jsonc`, using
-`mcp.servers` remote entries. Non-empty JSONC with comments or trailing commas
+`opencode.jsonc` candidate in the root or `.opencode/`, otherwise root
+`opencode.jsonc`, using direct `mcp.<server>` remote entries. For example:
+
+```json
+{
+  "mcp": {
+    "inspo": {
+      "type": "remote",
+      "url": "https://inspomcp.dev/api/mcp"
+    }
+  }
+}
+```
+
+Non-empty JSONC with comments or trailing commas
 is refused without rewriting. Pi prints guided-only catalog data and writes no
 native MCP config. Existing exact selected entries are no-ops; mismatches need
 `--force`, which replaces selected entries only. No auth, headers, secrets, or
-network calls occur.
+network calls occur. A later `--mcp` opt-in reuses an installed schema without
+requiring `--force`. Combined schema and MCP installation rolls schema changes
+back if the MCP config write fails. `validate` and `verify` validate optional
+catalog security metadata as well as OpenSpec schema YAML.
 
 ## Changing a Change's Schema
 
