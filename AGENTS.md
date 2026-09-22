@@ -22,6 +22,9 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 - Commit subject: `type(optional-scope): lower-case description`, max 72 chars.
 - Installer safety is contract: preflight collisions, reject symlinks, and let `--force` replace declared targets only.
 - Change-local schema updates dry-run by default, mutate only `.openspec.yaml` with `--apply`, and require `--allow-incompatible` for graph mismatches.
+- Native `opsx-schema handoff` uses OpenSpec list, status, and schema resolution as authority; it rejects completed, archived, external, or named-store changes and reports deterministic graph diffs before metadata-only transfer.
+- Native `opsx-schema` read commands expose stable JSON envelopes for project state, diagnostics, schema resolution, and managed skill state; mutations stay explicit through `--yes`, `--apply`, `--force`, and `--allow-incompatible`. View previews show bounded summaries; incompatible handoffs require explicit acknowledgement and a new preview before exact confirmation.
+- `bin/opsx-ipc-protocol.js` owns the versioned v2 private envelope contract; `bin/opsx-view-actions.js` owns parent-side preview tokens, selector validation, worker-bounded supported mutations, and cancellation fencing. Sidecar receives no raw command, filesystem, environment, or token-rendering authority.
 - `.omo/` and generated `.qlty` state are local. Never edit, package, lint, or commit them.
 - No CE-native plan/tracker or automatic commits, branches, pushes, issues, PRs, or OpenSpec stage advancement.
 
@@ -52,9 +55,10 @@ openspec schema validate <schema-name>
 node bin/openspec-schemas.js list
 node bin/openspec-schemas.js validate <schema-name>
 node bin/openspec-schemas.js verify
+node bin/opsx-schema.js handoff <change> <schema> [-t <project>] [--apply] [--allow-incompatible] [--json]
 ```
 
-Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
+Nub owns package management through `packageManager`, `devEngines.packageManager`, and `nub.lock`. Package releases remain manual. Core consumers may use `--no-optional`; persistent Node 26 view consumers declare the pinned OpenTUI runtime dependencies at the consumer root before the first install, retain their lockfile, and use frozen installs for repeats. Inspect release artifact and run a clean-project Nub smoke test before publishing beta; never store credentials or add automatic publishing.
 Public usage is Nub-first. `-a|--agents` accepts only `opencode`, `senpi`,
 `pi`, or `atomic` and requires `compound-intent-driven`; `--agent` and `--host`
 remain compatibility aliases. Keep local `node bin/openspec-schemas.js` commands for
@@ -164,3 +168,4 @@ When the user requests a durable behavior change, record it here or in the relev
 | `.agents/skills/writing-for-agents/` | Installed guidance for concise agent-facing documents. |
 | `openspec/schemas/AGENTS.md` | Self-contained schema authoring and validation. |
 | `openspec/schemas/compound-intent-driven/adapters/shared/AGENTS.md` | Canonical `/opsx-ce-*` adapter contracts and projection parity. |
+| `src/tui/AGENTS.md` | Isolated OpenTUI ESM sidecar and terminal lifecycle boundary. |
