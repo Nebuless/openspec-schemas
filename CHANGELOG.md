@@ -15,7 +15,8 @@ All notable changes will be documented here using
 
 ### Fixed
 
-- No changes yet.
+- Pin managed skill acquisition to `git` resolved through `PATH`; ignore executable override environment variables.
+- Detect observed installer and MCP config ancestor identity changes at conservative pre-mutation boundaries, and restore committed MCP config changes when a later install step fails.
 
 ## [1.8.0] - 2026-09-22
 

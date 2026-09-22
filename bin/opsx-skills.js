@@ -239,11 +239,10 @@ function enableSchema(projectRoot, schema, apply) {
 
 function acquire(resources, stageRoot, environment) {
   const repositories = new Map();
-  const git = environment.OPSX_SCHEMA_GIT || 'git';
   for (const resource of resources) {
     if (!repositories.has(resource.source)) {
       const destination = path.join(stageRoot, `repo-${repositories.size}`);
-      const result = spawnSync(git, ['clone', '--depth', '1', '--no-tags', '--quiet', `https://github.com/${resource.source}.git`, destination], {
+      const result = spawnSync('git', ['clone', '--depth', '1', '--no-tags', '--quiet', `https://github.com/${resource.source}.git`, destination], {
         encoding: 'utf8', timeout: 60000, maxBuffer: 1024 * 1024,
         env: { ...environment, HOME: path.join(stageRoot, 'git-home'), GIT_TERMINAL_PROMPT: '0', GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_COUNT: '0' },
       });
@@ -264,14 +263,6 @@ function acquire(resources, stageRoot, environment) {
 }
 
 function sameResource(left, right) { return left.source === right.source && left.path === right.path && left.target === right.target; }
-function failPoint(name, environment) { if (environment.OPSX_SCHEMA_TEST_FAIL_POINT === name) fail('TRANSACTION_FAILED', `Injected transaction failure: ${name}`); }
-function testHook(name, environment, projectRoot) {
-  if (environment.OPSX_SCHEMA_TEST_HOOK !== name) return;
-  if (name === 'swap-agents-after-journal') {
-    fs.renameSync(path.join(projectRoot, '.agents'), path.join(projectRoot, '.agents-before-swap'));
-    fs.symlinkSync('.opsx-schema-test-alternate', path.join(projectRoot, '.agents'));
-  }
-}
 
 function mutateSkills({ projectRoot, packageRoot, packageVersion, schema, profile, operation, force, environment = process.env }) {
   const control = path.join(projectRoot, '.openspec/opsx-schema');
@@ -371,9 +362,7 @@ function mutateSkills({ projectRoot, packageRoot, packageVersion, schema, profil
     fs.writeFileSync(journal, `${JSON.stringify({ schemaVersion: 1, operation, schema, profile, pid: process.pid })}\n`, { flag: 'wx', mode: 0o600 });
     guard.update('.openspec/opsx-schema/transaction.json');
     journalWritten = true;
-    testHook('swap-agents-after-journal', environment, projectRoot);
     guard.verify('.openspec/opsx-schema/transaction.json');
-    failPoint('after-journal', environment);
     const backupRoot = path.join(stageRoot, 'backups');
     fs.mkdirSync(backupRoot, { mode: 0o700 });
     for (const resource of chosen) {
@@ -390,7 +379,6 @@ function mutateSkills({ projectRoot, packageRoot, packageVersion, schema, profil
     const markerFile = markerPath(projectRoot);
     guard.verify('.openspec/opsx-schema/managed-skills.json');
     if (stat(markerFile)) { markerBackup = path.join(stageRoot, 'marker-backup'); fs.copyFileSync(markerFile, markerBackup); }
-    failPoint('after-backup', environment);
     if (operation !== 'disable') {
       for (const resource of selected) {
         const target = path.join(projectRoot, ...resource.target.split('/'));
@@ -402,9 +390,7 @@ function mutateSkills({ projectRoot, packageRoot, packageVersion, schema, profil
         applied.push({ target, digest: resource.digest });
       }
     }
-    failPoint('after-target', environment);
     for (const entry of applied) if (digestTree(entry.target) !== entry.digest) fail('TARGET_CHANGED', `Staged target changed during commit: ${entry.target}`);
-    failPoint('before-marker', environment);
     const markerTemporary = path.join(control, `managed-skills.${crypto.randomUUID()}.tmp`);
     guard.verify('.openspec/opsx-schema');
     guard.verify('.openspec/opsx-schema/managed-skills.json');

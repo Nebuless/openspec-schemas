@@ -5,6 +5,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const mcp = require('./mcp-config');
 const { setChangeSchemaLegacy } = require('./change-schema.js');
+const { createAbsolutePathGuard } = require('./opsx-path-guard.js');
 function handleStreamError(error) {
   if (error.code === 'EPIPE') process.exit(0);
   throw error;
@@ -110,6 +111,7 @@ function main() {
   const source = path.join(schemas, name);
   const destination = path.join(target, 'openspec/schemas', name);
   const installed = stat(destination);
+  const mutationTargets = [destination];
   if (mcpSelector) {
     mcpInstall = mcp.plan(target, source, mcpSelector, host, force);
   } else if (host && (!Object.hasOwn(hosts, host) || name !== 'compound-intent-driven')) {
@@ -120,7 +122,9 @@ function main() {
   else collision(destination, force, true);
   if (host && !mcpSelector) {
     for (const file of fs.readdirSync(path.join(root, hosts[host])).filter(file => /^opsx-ce-.*\.md$/.test(file))) {
-      collision(path.join(target, hosts[host], file), force, false);
+      const adapterTarget = path.join(target, hosts[host], file);
+      collision(adapterTarget, force, false);
+      mutationTargets.push(adapterTarget);
     }
   }
   if (skills) {
@@ -129,7 +133,9 @@ function main() {
       for (const line of fs.readFileSync(manifest, 'utf8').split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('#'))) {
         const skill = path.posix.basename(line.split('\t').at(-1).trim());
         if (!skill || skill === '.' || skill === '..') throw new Error('unsafe skill manifest');
-        collision(path.join(target, '.agents/skills', skill), force, true);
+        const skillTarget = path.join(target, '.agents/skills', skill);
+        collision(skillTarget, force, true);
+        mutationTargets.push(skillTarget);
       }
     }
   }
@@ -144,28 +150,44 @@ function main() {
     const simple = /^schema:([ \t]+)[a-zA-Z0-9_-]+([ \t]*(?:#[^\r\n]*)?)(\r?)$/;
     if (candidates.length !== 1 || !simple.test(candidates[0])) throw new Error('activation requires one simple existing top-level schema: line');
     updated = lines.map(line => simple.test(line) ? line.replace(simple, `schema:$1${name}$2$3`) : line).join('\n');
+    mutationTargets.push(config);
   }
+  const guard = createAbsolutePathGuard(mutationTargets, message => { throw new Error(message); });
   run('openspec', ['schema', 'validate', name], root);
   const replaceSchema = !(mcpSelector && installed);
   const backup = replaceSchema && installed ? `${destination}.${require('node:crypto').randomUUID()}.backup` : undefined;
   const createdParents = [path.dirname(destination), path.dirname(path.dirname(destination))].filter(directory => !stat(directory));
   try {
     if (replaceSchema) {
-      if (backup) fs.renameSync(destination, backup);
-      fs.mkdirSync(path.dirname(destination), { recursive: true }); fs.cpSync(source, destination, { recursive: true });
+      guard.verify(destination);
+      if (backup) { guard.remember(backup); guard.verify(backup); fs.renameSync(destination, backup); guard.update(destination); guard.update(backup); }
+      guard.ensureDirectory(path.dirname(destination));
+      guard.verify(destination);
+      fs.cpSync(source, destination, { recursive: true });
+      guard.update(destination);
+      guard.update(target);
+      if (mcpInstall) mcp.updateOwnedPath(mcpInstall, target);
     }
     const extra = force ? ['--force'] : [];
-    if (skills) run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
-    if (host && !mcpSelector) run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
+    if (skills) {
+      for (const file of mutationTargets.filter(file => file.includes(`${path.sep}.agents${path.sep}skills${path.sep}`))) guard.verify(file);
+      run('sh', [path.join(root, 'scripts/install-schema-skills.sh'), destination, target, ...extra], root);
+    }
+    if (host && !mcpSelector) {
+      for (const file of mutationTargets.filter(file => file.startsWith(path.join(target, hosts[host]) + path.sep))) guard.verify(file);
+      run('sh', [path.join(root, 'scripts/install-compound-adapters.sh'), host, target, ...extra], root);
+    }
     run('openspec', ['schema', 'validate', name], target);
-    if (updated !== undefined) fs.writeFileSync(config, updated);
+    if (updated !== undefined) { guard.verify(config); fs.writeFileSync(config, updated); guard.update(config); }
     if (mcpInstall) mcp.write(mcpInstall);
-    if (backup) fs.rmSync(backup, { recursive: true });
+    if (backup) { guard.verify(backup); fs.rmSync(backup, { recursive: true }); guard.update(backup); }
   } catch (error) {
-    if (replaceSchema && stat(destination)) fs.rmSync(destination, { recursive: true });
-    if (backup) fs.renameSync(backup, destination);
-    if (updated !== undefined) fs.writeFileSync(config, originalConfig);
-    for (const directory of createdParents) try { fs.rmdirSync(directory); } catch (cleanupError) { if (!['ENOENT', 'ENOTEMPTY'].includes(cleanupError.code)) throw cleanupError; }
+    if (mcpInstall) mcp.restore(mcpInstall);
+    guard.verify(destination);
+    if (replaceSchema && stat(destination)) { fs.rmSync(destination, { recursive: true }); guard.update(destination); }
+    if (backup) { guard.verify(backup); guard.verify(destination); fs.renameSync(backup, destination); guard.update(backup); guard.update(destination); }
+    if (updated !== undefined) { guard.verify(config); fs.writeFileSync(config, originalConfig); guard.update(config); }
+    for (const directory of createdParents) try { guard.verify(directory); fs.rmdirSync(directory); guard.update(directory); } catch (cleanupError) { if (!['ENOENT', 'ENOTEMPTY'].includes(cleanupError.code)) throw cleanupError; }
     throw error;
   }
   console.log(`Installed ${name} in ${destination}`);

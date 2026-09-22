@@ -32,7 +32,42 @@ module.exports = function testOpsxSkills(root) {
     write(path.join(sources, 'intent-driven-dev/skills/.agents/skills/openspec-git-discipline/SKILL.md'), '# discipline\n', 0o640);
     write(path.join(tools, 'openspec'), `#!${process.execPath}\n'use strict';\nconst fs = require('node:fs');\nconst path = require('node:path');\nconst args = process.argv.slice(2);\nconst root = { path: process.env.PROJECT, source: 'nearest' };\nif (process.env.CALL_LOG) fs.appendFileSync(process.env.CALL_LOG, JSON.stringify({tool:'openspec',args})+'\\n');\nif (args.join(' ') === 'list --json') process.stdout.write(JSON.stringify({changes:[],root}));\nelse if (args.join(' ') === 'doctor --json') process.stdout.write(JSON.stringify({root,store:null,references:[],status:[]}));\nelse if (args.join(' ') === 'schema which --all --json') { const schema = process.env.OPSX_SCHEMA_UNRESOLVED ? 'minimalist' : 'intent-driven'; process.stdout.write(JSON.stringify([{name:schema,source:'package',path:path.join(process.env.PACKAGE_ROOT,\`openspec/schemas/\${schema}\`),shadows:[]} ])); }\nelse process.exit(2);\n`, 0o755);
     write(path.join(tools, 'git'), `#!${process.execPath}\n'use strict';\nconst fs = require('node:fs');\nconst path = require('node:path');\nconst args = process.argv.slice(2);\nif (process.env.CALL_LOG) fs.appendFileSync(process.env.CALL_LOG, JSON.stringify({tool:'git',args,home:process.env.HOME,prompt:process.env.GIT_TERMINAL_PROMPT,nosystem:process.env.GIT_CONFIG_NOSYSTEM,global:process.env.GIT_CONFIG_GLOBAL})+'\\n');\nif (process.env.GIT_BLOCK_FILE) { fs.writeFileSync(process.env.GIT_BLOCK_FILE, 'ready'); while (!fs.existsSync(process.env.GIT_RELEASE_FILE)) {} }\nif (args[0] !== 'clone') process.exit(9);\nconst url = args.at(-2);\nconst destination = args.at(-1);\nconst match = /^https:\\/\\/github\\.com\\/([A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+)\\.git$/.exec(url);\nif (!match) process.exit(8);\nfs.cpSync(path.join(process.env.SOURCE_ROOT, match[1]), destination, {recursive:true});\n`, 0o755);
-    const baseEnv = { ...process.env, PATH: `${tools}:${process.env.PATH}`, PROJECT: project, PACKAGE_ROOT: root, SOURCE_ROOT: sources, CALL_LOG: calls, OPSX_SCHEMA_GIT: path.join(tools, 'git') };
+    const overrideGit = path.join(tools, 'override-git');
+    write(overrideGit, `#!${process.execPath}\n'use strict';\nrequire('node:fs').appendFileSync(process.env.CALL_LOG, JSON.stringify({tool:'override-git'})+'\\n');\nprocess.exit(77);\n`, 0o755);
+    const mutationPreload = path.join(tmp, 'mutation-preload.js');
+    write(mutationPreload, `'use strict';
+if (process.argv[1] === process.env.OPSX_TEST_CLI) {
+  const fs = require('node:fs');
+  const mkdirSync = fs.mkdirSync;
+  const unlinkSync = fs.unlinkSync;
+  let triggered = false;
+  fs.mkdirSync = function guardedMkdir(file, ...args) {
+    const result = mkdirSync.call(this, file, ...args);
+    if (!triggered && file.endsWith('/backups')) {
+      triggered = true;
+      if (process.env.OPSX_TEST_SWAP_AGENTS === '1') {
+        fs.renameSync(process.env.OPSX_TEST_AGENTS, process.env.OPSX_TEST_AGENTS_BACKUP);
+        fs.symlinkSync(process.env.OPSX_TEST_ALTERNATE, process.env.OPSX_TEST_AGENTS);
+      } else if (process.env.OPSX_TEST_STAGE === 'post-journal') {
+        const error = new Error('injected post-journal failure');
+        error.code = 'TRANSACTION_FAILED';
+        throw error;
+      }
+    }
+    return result;
+  };
+  fs.unlinkSync = function guardedUnlink(file) {
+    if (process.env.OPSX_TEST_STAGE === 'post-marker' && file.endsWith('/transaction.json')) {
+      process.env.OPSX_TEST_STAGE = 'rollback';
+      const error = new Error('injected post-marker failure');
+      error.code = 'TRANSACTION_FAILED';
+      throw error;
+    }
+    return unlinkSync.call(this, file);
+  };
+}
+`);
+    const baseEnv = { ...process.env, PATH: `${tools}:${process.env.PATH}`, PROJECT: project, PACKAGE_ROOT: root, SOURCE_ROOT: sources, CALL_LOG: calls };
     const cli = (args, overrides = {}, cwd = project) => spawnSync(process.execPath, [path.join(root, 'bin/opsx-schema.js'), ...args], { cwd, encoding: 'utf8', env: { ...baseEnv, ...overrides } });
     const json = (args, overrides, cwd) => {
       const result = cli(args, overrides, cwd);
@@ -91,7 +126,7 @@ module.exports = function testOpsxSkills(root) {
     assert.equal(fs.readFileSync(calls, 'utf8').includes('"tool":"git"'), false);
     assert.deepEqual(tree(project), initial);
 
-    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json']);
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { OPSX_SCHEMA_GIT: overrideGit });
     assert.equal(result.status, 0);
     assert.equal(envelope.data.applied, true);
     assert.equal(envelope.mutations[0].status, 'applied');
@@ -115,6 +150,7 @@ module.exports = function testOpsxSkills(root) {
     assert.equal(envelope.mutations[0].status, 'noop');
     assert.deepEqual(tree(project), installed);
     const gitCalls = fs.readFileSync(calls, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse).filter(call => call.tool === 'git');
+    assert.equal(fs.readFileSync(calls, 'utf8').includes('"tool":"override-git"'), false);
     assert.deepEqual(gitCalls.at(-1).args.slice(0, 7), ['clone', '--depth', '1', '--no-tags', '--quiet', 'https://github.com/intent-driven-dev/skills.git', gitCalls.at(-1).args[6]]);
     assert.equal(gitCalls.at(-1).prompt, '0');
     assert.equal(gitCalls.at(-1).nosystem, '1');
@@ -239,10 +275,10 @@ module.exports = function testOpsxSkills(root) {
 
     const fstatFault = path.join(tmp, 'fstat-eio.js');
     const fstatTemporary = path.join(project, '.opsx-schema-fstat-tmp');
-    write(fstatFault, `'use strict';\nconst fs = require('node:fs');\nconst original = fs.fstatSync;\nlet injected = false;\nfs.fstatSync = function fstatSync(...args) {\n  const mode = process.env.OPSX_SCHEMA_TEST_FSTAT_EIO;\n  if (mode === 'always' || (mode === 'first' && !injected)) {\n    injected = true;\n    const error = new Error('injected fstat failure');\n    error.code = 'EIO';\n    throw error;\n  }\n  return original.apply(this, args);\n};\n`);
+    write(fstatFault, `'use strict';\nif (process.argv[1] === process.env.OPSX_TEST_CLI) {\n  const fs = require('node:fs');\n  const original = fs.fstatSync;\n  let injected = false;\n  fs.fstatSync = function fstatSync(...args) {\n    const mode = process.env.OPSX_SCHEMA_TEST_FSTAT_EIO;\n    if (mode === 'always' || (mode === 'first' && !injected)) {\n      injected = true;\n      const error = new Error('injected fstat failure');\n      error.code = 'EIO';\n      throw error;\n    }\n    return original.apply(this, args);\n  };\n}\n`);
     fs.mkdirSync(fstatTemporary);
     const fstatBefore = tree(project);
-    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { NODE_OPTIONS: `--require=${fstatFault}`, OPSX_SCHEMA_TEST_FSTAT_EIO: 'first', TMPDIR: fstatTemporary });
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { NODE_OPTIONS: `--require=${fstatFault}`, OPSX_TEST_CLI: path.join(root, 'bin/opsx-schema.js'), OPSX_SCHEMA_TEST_FSTAT_EIO: 'first', TMPDIR: fstatTemporary });
     assert.equal(result.status, 1);
     assert.equal(envelope.diagnostics[0].code, 'EIO');
     assert.deepEqual(tree(project), fstatBefore);
@@ -254,7 +290,7 @@ module.exports = function testOpsxSkills(root) {
     assert.equal(envelope.diagnostics.some(item => item.code === 'MUTATION_LOCKED'), false);
     assert.deepEqual(fs.readdirSync(fstatTemporary), []);
     const permanentFstatBefore = tree(project);
-    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { NODE_OPTIONS: `--require=${fstatFault}`, OPSX_SCHEMA_TEST_FSTAT_EIO: 'always', TMPDIR: fstatTemporary });
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { NODE_OPTIONS: `--require=${fstatFault}`, OPSX_TEST_CLI: path.join(root, 'bin/opsx-schema.js'), OPSX_SCHEMA_TEST_FSTAT_EIO: 'always', TMPDIR: fstatTemporary });
     assert.equal(result.status, 1);
     assert.equal(envelope.diagnostics[0].code, 'EIO');
     assert.equal(fs.existsSync(path.join(project, '.openspec/opsx-schema/mutation.lock')), true);
@@ -269,7 +305,7 @@ module.exports = function testOpsxSkills(root) {
     const closeReplacementFault = path.join(tmp, 'close-replacement.js');
     const closeReplacementTemporary = path.join(project, '.opsx-schema-close-tmp');
     const replacementBytes = 'replacement-lock-must-survive\n';
-    write(closeReplacementFault, `'use strict';\nconst fs = require('node:fs');\nconst originalOpen = fs.openSync;\nconst originalClose = fs.closeSync;\nlet lockDescriptor = null;\nlet lockPath = null;\nfs.openSync = function openSync(file, ...args) {\n  const descriptor = originalOpen.call(this, file, ...args);\n  if (typeof file === 'string' && file.endsWith('/mutation.lock')) { lockDescriptor = descriptor; lockPath = file; }\n  return descriptor;\n};\nfs.closeSync = function closeSync(descriptor) {\n  if (descriptor === lockDescriptor && lockPath) {\n    if (fs.existsSync(lockPath)) fs.unlinkSync(lockPath);\n    fs.writeFileSync(lockPath, process.env.OPSX_SCHEMA_TEST_REPLACEMENT);\n    lockDescriptor = null;\n  }\n  return originalClose.call(this, descriptor);\n};\n`);
+    write(closeReplacementFault, `'use strict';\nif (process.argv[1] === process.env.OPSX_TEST_CLI) {\n  const fs = require('node:fs');\n  const originalOpen = fs.openSync;\n  const originalClose = fs.closeSync;\n  let lockDescriptor = null;\n  let lockPath = null;\n  fs.openSync = function openSync(file, ...args) {\n    const descriptor = originalOpen.call(this, file, ...args);\n    if (typeof file === 'string' && file.endsWith('/mutation.lock')) { lockDescriptor = descriptor; lockPath = file; }\n    return descriptor;\n  };\n  fs.closeSync = function closeSync(descriptor) {\n    if (descriptor === lockDescriptor && lockPath) {\n      if (fs.existsSync(lockPath)) fs.unlinkSync(lockPath);\n      fs.writeFileSync(lockPath, process.env.OPSX_SCHEMA_TEST_REPLACEMENT);\n      lockDescriptor = null;\n    }\n    return originalClose.call(this, descriptor);\n  };\n}\n`);
     fs.mkdirSync(closeReplacementTemporary);
     const closeAlternate = path.join(project, '.opsx-schema-close-alternate');
     write(path.join(closeAlternate, 'sentinel'), 'close-alternate-untouched\n', 0o600);
@@ -278,7 +314,7 @@ module.exports = function testOpsxSkills(root) {
     const sentinelBefore = fs.readFileSync(path.join(project, 'sentinel'));
     fs.renameSync(path.join(project, '.agents'), path.join(project, '.agents-close-safe'));
     fs.symlinkSync('.opsx-schema-close-alternate', path.join(project, '.agents'));
-    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { NODE_OPTIONS: `--require=${closeReplacementFault}`, OPSX_SCHEMA_TEST_REPLACEMENT: replacementBytes, TMPDIR: closeReplacementTemporary });
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { NODE_OPTIONS: `--require=${closeReplacementFault}`, OPSX_TEST_CLI: path.join(root, 'bin/opsx-schema.js'), OPSX_SCHEMA_TEST_REPLACEMENT: replacementBytes, TMPDIR: closeReplacementTemporary });
     assert.equal(result.status, 1);
     assert.equal(envelope.diagnostics.some(item => item.code === 'TARGET_CHANGED'), true);
     const replacementLock = path.join(project, '.openspec/opsx-schema/mutation.lock');
@@ -321,11 +357,18 @@ module.exports = function testOpsxSkills(root) {
     write(path.join(alternate, 'sentinel'), 'alternate-untouched\n', 0o600);
     const originalUserTarget = tree(path.join(project, '.agents/skills/openspec-git-discipline'));
     const alternateBefore = tree(alternate);
-    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--force', '--apply', '--json'], { OPSX_SCHEMA_TEST_HOOK: 'swap-agents-after-journal' });
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--force', '--apply', '--json'], {
+      NODE_OPTIONS: `--require=${mutationPreload}`,
+      OPSX_TEST_CLI: path.join(root, 'bin/opsx-schema.js'),
+      OPSX_TEST_SWAP_AGENTS: '1',
+      OPSX_TEST_AGENTS: path.join(project, '.agents'),
+      OPSX_TEST_AGENTS_BACKUP: path.join(project, '.agents-before-swap'),
+      OPSX_TEST_ALTERNATE: alternate,
+    });
     assert.equal(result.status, 1);
     assert.equal(envelope.diagnostics.some(item => ['TARGET_CHANGED', 'UNSAFE_TARGET'].includes(item.code)), true);
     assert.equal(fs.lstatSync(path.join(project, '.agents')).isSymbolicLink(), true);
-    assert.equal(fs.readlinkSync(path.join(project, '.agents')), '.opsx-schema-test-alternate');
+    assert.equal(fs.readlinkSync(path.join(project, '.agents')), alternate);
     assert.deepEqual(tree(path.join(project, '.agents-before-swap/skills/openspec-git-discipline')), originalUserTarget);
     assert.deepEqual(tree(alternate), alternateBefore);
     assert.equal(fs.readFileSync(path.join(project, 'sentinel'), 'utf8'), 'keep\n');
@@ -335,13 +378,23 @@ module.exports = function testOpsxSkills(root) {
     fs.renameSync(path.join(project, '.agents-before-swap'), path.join(project, '.agents'));
     fs.rmSync(alternate, { recursive: true });
     fs.rmSync(path.join(project, '.agents/skills/openspec-git-discipline'), { recursive: true });
-    for (const point of ['after-journal', 'after-backup', 'after-target', 'before-marker']) {
-      const before = tree(project);
-      [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], { OPSX_SCHEMA_TEST_FAIL_POINT: point });
-      assert.equal(result.status, 1, point);
-      assert.equal(envelope.diagnostics.some(item => item.code === 'TRANSACTION_FAILED'), true, point);
-      assert.deepEqual(tree(project), before, point);
-    }
+    const beforeInjectedFailure = tree(project);
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], {
+      NODE_OPTIONS: `--require=${mutationPreload}`,
+      OPSX_TEST_CLI: path.join(root, 'bin/opsx-schema.js'),
+      OPSX_TEST_STAGE: 'post-journal',
+    });
+    assert.equal(result.status, 1);
+    assert.equal(envelope.diagnostics.some(item => item.code === 'TRANSACTION_FAILED'), true);
+    assert.deepEqual(tree(project), beforeInjectedFailure);
+    [result, envelope] = json(['skills', 'install', '--schema', 'minimalist', '--apply', '--json'], {
+      NODE_OPTIONS: `--require=${mutationPreload}`,
+      OPSX_TEST_CLI: path.join(root, 'bin/opsx-schema.js'),
+      OPSX_TEST_STAGE: 'post-marker',
+    });
+    assert.equal(result.status, 1);
+    assert.equal(envelope.diagnostics.some(item => item.code === 'TRANSACTION_FAILED'), true);
+    assert.deepEqual(tree(project), beforeInjectedFailure);
 
     fs.writeFileSync(path.join(project, '.openspec/opsx-schema/mutation.lock'), 'held');
     const concurrent = tree(project);

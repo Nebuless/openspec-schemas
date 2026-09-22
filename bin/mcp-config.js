@@ -4,8 +4,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { isDeepStrictEqual } = require('node:util');
+const { createAbsolutePathGuard } = require('./opsx-path-guard.js');
 
 const hosts = new Set(['atomic', 'omp', 'opencode', 'pi']);
+const pathGuards = new WeakMap();
+const committedPlans = new WeakSet();
 
 function stat(file) {
   try { return fs.lstatSync(file); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
@@ -99,25 +102,80 @@ function plan(target, source, selector, requestedHost, force) {
     if (servers[entry.name] !== undefined && !isDeepStrictEqual(servers[entry.name], expected) && !force) throw new Error(`MCP server collision: ${entry.name} (use --force to replace selected server)`);
     if (!isDeepStrictEqual(servers[entry.name], expected)) { servers[entry.name] = expected; changed = true; }
   }
-  return { file, info, original, updated: `${JSON.stringify(config, null, 2)}\n`, noop: !changed, entries };
+  const guard = createAbsolutePathGuard([file], message => { throw new Error(`MCP config ${message.toLowerCase()}`); });
+  const result = { file, info, original, updated: `${JSON.stringify(config, null, 2)}\n`, noop: !changed, entries };
+  pathGuards.set(result, guard);
+  return result;
 }
+
+function pathGuard(plan) {
+  const guard = pathGuards.get(plan);
+  if (!guard) throw new Error('MCP config plan is not owned by this process');
+  return guard;
+}
+
+function updateOwnedPath(plan, file) { if (!plan.guided) pathGuard(plan).update(file); }
 
 function write(plan) {
   if (plan.guided) { console.log(`MCP guided-only for pi: ${plan.entries.map(entry => `${entry.name}=${entry.url}`).join(', ')}`); return; }
   if (plan.noop) return;
-  directories(path.dirname(plan.file));
+  const guard = pathGuard(plan);
+  const parent = path.dirname(plan.file);
+  guard.verify(plan.file);
   const current = stat(plan.file);
   if (plan.info && (!current || !current.isFile() || current.isSymbolicLink() || current.ino !== plan.info.ino || current.dev !== plan.info.dev || !fs.readFileSync(plan.file).equals(plan.original))) throw new Error('MCP config changed during preflight');
   if (!plan.info && current) throw new Error('MCP config appeared during preflight');
-  fs.mkdirSync(path.dirname(plan.file), { recursive: true });
-  directories(path.dirname(plan.file));
+  guard.ensureDirectory(parent);
+  guard.verify(parent);
+  guard.verify(plan.file);
   const mode = plan.info ? plan.info.mode & 0o7777 : 0o644;
   const temporary = `${plan.file}.${crypto.randomUUID()}.tmp`;
+  let primaryError = null;
   const descriptor = fs.openSync(temporary, 'wx', mode);
   try {
     try { fs.writeFileSync(descriptor, plan.updated); fs.fchmodSync(descriptor, mode); } finally { fs.closeSync(descriptor); }
+    guard.verify(parent);
+    guard.verify(plan.file);
     fs.renameSync(temporary, plan.file);
-  } finally { if (stat(temporary)) fs.unlinkSync(temporary); }
+    guard.update(plan.file);
+    committedPlans.add(plan);
+  } catch (error) {
+    primaryError = error;
+    throw error;
+  } finally {
+    try { guard.verify(parent); if (stat(temporary)) fs.unlinkSync(temporary); } catch (error) { if (!primaryError) throw error; }
+  }
 }
 
-module.exports = { plan, validateCatalog, write };
+function restore(plan) {
+  if (plan.guided || plan.noop || !committedPlans.has(plan)) return;
+  const guard = pathGuard(plan);
+  const parent = path.dirname(plan.file);
+  guard.verify(parent);
+  guard.verify(plan.file);
+  if (!plan.info) {
+    fs.unlinkSync(plan.file);
+    guard.update(plan.file);
+    committedPlans.delete(plan);
+    return;
+  }
+  const temporary = `${plan.file}.${crypto.randomUUID()}.rollback`;
+  let primaryError = null;
+  const mode = plan.info.mode & 0o7777;
+  const descriptor = fs.openSync(temporary, 'wx', mode);
+  try {
+    try { fs.writeFileSync(descriptor, plan.original); fs.fchmodSync(descriptor, mode); } finally { fs.closeSync(descriptor); }
+    guard.verify(parent);
+    guard.verify(plan.file);
+    fs.renameSync(temporary, plan.file);
+    guard.update(plan.file);
+    committedPlans.delete(plan);
+  } catch (error) {
+    primaryError = error;
+    throw error;
+  } finally {
+    try { guard.verify(parent); if (stat(temporary)) fs.unlinkSync(temporary); } catch (error) { if (!primaryError) throw error; }
+  }
+}
+
+module.exports = { plan, restore, updateOwnedPath, validateCatalog, write };

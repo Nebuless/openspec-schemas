@@ -151,21 +151,117 @@ if (args[0] === 'status') {
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(mcpOptInTarget, 'opencode.jsonc'), 'utf8')), { mcp: { inspo: { type: 'remote', url: 'https://inspomcp.dev/api/mcp' } } });
     const failMcpWrite = path.join(tmp, 'fail-mcp-write.js');
     write(failMcpWrite, `'use strict';
-const fs = require('node:fs');
-const renameSync = fs.renameSync;
-fs.renameSync = (source, destination) => {
-  if (destination === process.env.FAIL_MCP_DESTINATION) throw new Error('injected MCP config write failure');
-  return renameSync(source, destination);
-};
+if (process.argv[1] === process.env.TEST_CLI) {
+  const fs = require('node:fs');
+  const renameSync = fs.renameSync;
+  fs.renameSync = (source, destination) => {
+    if (destination === process.env.FAIL_MCP_DESTINATION) throw new Error('injected MCP config write failure');
+    return renameSync(source, destination);
+  };
+}
 `);
     const atomicMcpTarget = path.join(tmp, 'mcp atomic failure');
     const atomicMcpConfig = path.join(atomicMcpTarget, 'opencode.jsonc');
     write(atomicMcpConfig, '{}\n');
     write(path.join(atomicMcpTarget, 'openspec/config.yaml'), 'schema: old\n');
     const atomicMcpBefore = snapshot(atomicMcpTarget);
-    assert.notEqual(cli(['install', designSchema, '-t', atomicMcpTarget, '--mcp', 'inspo', '-a', 'opencode', '--activate'], { NODE_OPTIONS: `--require=${failMcpWrite}`, FAIL_MCP_DESTINATION: atomicMcpConfig }).status, 0);
+    assert.notEqual(cli(['install', designSchema, '-t', atomicMcpTarget, '--mcp', 'inspo', '-a', 'opencode', '--activate'], { NODE_OPTIONS: `--require=${failMcpWrite}`, TEST_CLI: path.join(root, 'bin/openspec-schemas.js'), FAIL_MCP_DESTINATION: atomicMcpConfig }).status, 0);
     assert.deepEqual(snapshot(atomicMcpTarget), atomicMcpBefore);
-   const jsoncTarget = path.join(tmp, 'mcp jsonc');
+    const failAfterMcpWrite = path.join(tmp, 'fail-after-mcp-write.js');
+    write(failAfterMcpWrite, `'use strict';
+if (process.argv[1] === process.env.TEST_CLI) {
+  const Module = require('node:module');
+  const load = Module._load;
+  Module._load = function guardedLoad(request, parent, isMain) {
+    const loaded = load.call(this, request, parent, isMain);
+    if (request === './mcp-config' && parent?.filename === process.env.TEST_CLI) {
+      return { ...loaded, write(plan) { loaded.write(plan); throw new Error('injected post-MCP failure'); } };
+    }
+    return loaded;
+  };
+}
+`);
+    const postMcpTarget = path.join(tmp, 'mcp post-commit failure');
+    const postMcpConfig = path.join(postMcpTarget, 'opencode.jsonc');
+    write(postMcpConfig, '{}\n');
+    ok(cli(['install', designSchema, '-t', postMcpTarget]));
+    const postMcpBefore = snapshot(postMcpTarget);
+    const postMcpFailure = cli(['install', designSchema, '-t', postMcpTarget, '--mcp', 'inspo', '-a', 'opencode'], {
+      NODE_OPTIONS: `--require=${failAfterMcpWrite}`,
+      TEST_CLI: path.join(root, 'bin/openspec-schemas.js'),
+    });
+    assert.notEqual(postMcpFailure.status, 0);
+    assert.deepEqual(snapshot(postMcpTarget), postMcpBefore);
+    const swapAfterValidation = path.join(tmp, 'swap-after-validation.js');
+    write(swapAfterValidation, `'use strict';
+if (process.argv[1] === process.env.TEST_CLI) {
+  const fs = require('node:fs');
+  const childProcess = require('node:child_process');
+  const original = childProcess.spawnSync;
+  let swapped = false;
+  childProcess.spawnSync = function spawnSync(command, args, options) {
+    const result = original.call(this, command, args, options);
+    if (!swapped && command === 'openspec' && args[0] === 'schema' && args[1] === 'validate') {
+      swapped = true;
+      fs.renameSync(process.env.SWAP_PARENT, process.env.SWAP_BACKUP);
+      fs.symlinkSync(process.env.SWAP_EXTERNAL, process.env.SWAP_PARENT);
+    }
+    return result;
+  };
+}
+`);
+    const swappedInstallTarget = path.join(tmp, 'ancestor swap install');
+    const swappedInstallParent = path.join(swappedInstallTarget, 'openspec');
+    const swappedInstallExternal = path.join(tmp, 'ancestor swap install external');
+    write(path.join(swappedInstallParent, 'sentinel'), 'internal');
+    write(path.join(swappedInstallExternal, 'sentinel'), 'external');
+    const swappedInstallExternalBefore = snapshot(swappedInstallExternal);
+    const swappedInstall = cli(['install', designSchema, '-t', swappedInstallTarget], {
+      NODE_OPTIONS: `--require=${swapAfterValidation}`,
+      TEST_CLI: path.join(root, 'bin/openspec-schemas.js'),
+      SWAP_PARENT: swappedInstallParent,
+      SWAP_BACKUP: path.join(swappedInstallTarget, 'openspec-before-swap'),
+      SWAP_EXTERNAL: swappedInstallExternal,
+    });
+    assert.notEqual(swappedInstall.status, 0);
+    assert.deepEqual(snapshot(swappedInstallExternal), swappedInstallExternalBefore);
+    assert.equal(fs.readFileSync(path.join(swappedInstallExternal, 'sentinel'), 'utf8'), 'external');
+    const swapBeforeMcpWrite = path.join(tmp, 'swap-before-mcp-write.js');
+    write(swapBeforeMcpWrite, `'use strict';
+if (process.argv[1] === process.env.TEST_CLI) {
+  const fs = require('node:fs');
+  const childProcess = require('node:child_process');
+  const original = childProcess.spawnSync;
+  let swapped = false;
+  childProcess.spawnSync = function spawnSync(command, args, options) {
+    const result = original.call(this, command, args, options);
+    if (!swapped && command === 'openspec' && args[0] === 'schema' && args[1] === 'validate' && options.cwd === process.env.SWAP_PROJECT) {
+      swapped = true;
+      fs.renameSync(process.env.SWAP_PARENT, process.env.SWAP_BACKUP);
+      fs.symlinkSync(process.env.SWAP_EXTERNAL, process.env.SWAP_PARENT);
+    }
+    return result;
+  };
+}
+`);
+    const swappedMcpTarget = path.join(tmp, 'ancestor swap mcp');
+    const swappedMcpParent = path.join(swappedMcpTarget, '.omp');
+    const swappedMcpExternal = path.join(tmp, 'ancestor swap mcp external');
+    write(path.join(swappedMcpParent, 'sentinel'), 'internal');
+    write(path.join(swappedMcpExternal, 'sentinel'), 'external');
+    const swappedMcpExternalBefore = snapshot(swappedMcpExternal);
+    const swappedMcp = cli(['install', designSchema, '-t', swappedMcpTarget, '--mcp', 'inspo', '-a', 'omp'], {
+      NODE_OPTIONS: `--require=${swapBeforeMcpWrite}`,
+      TEST_CLI: path.join(root, 'bin/openspec-schemas.js'),
+      SWAP_PROJECT: swappedMcpTarget,
+      SWAP_PARENT: swappedMcpParent,
+      SWAP_BACKUP: path.join(swappedMcpTarget, '.omp-before-swap'),
+      SWAP_EXTERNAL: swappedMcpExternal,
+    });
+    assert.notEqual(swappedMcp.status, 0);
+    assert.deepEqual(snapshot(swappedMcpExternal), swappedMcpExternalBefore);
+    assert.equal(fs.readFileSync(path.join(swappedMcpExternal, 'sentinel'), 'utf8'), 'external');
+    const jsoncTarget = path.join(tmp, 'mcp jsonc');
    const jsonc = '{\n  // keep\n  "mcp": {}\n}\n'; write(path.join(jsoncTarget, 'opencode.jsonc'), jsonc);
    const jsoncBefore = snapshot(jsoncTarget); assert.notEqual(cli(['install', designSchema, '-t', jsoncTarget, '--mcp', 'inspo', '-a', 'opencode']).status, 0); assert.deepEqual(snapshot(jsoncTarget), jsoncBefore);
    const malformedMcpTarget = path.join(tmp, 'mcp malformed'); write(path.join(malformedMcpTarget, '.mcp.json'), '{'); const malformedMcpBefore = snapshot(malformedMcpTarget);

@@ -20,9 +20,10 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 ## Local Contracts
 
 - Shell: POSIX `sh`, `set -eu`, quote paths, support spaces, no Bash features.
-- Preflight all files before mutation. Reject unsafe links, overlap, malformed paths, and undeclared collisions.
+- Preflight all files before mutation. Recheck ancestor filesystem identities at conservative mutation boundaries; reject observed unsafe links, replacements, overlap, malformed paths, and undeclared collisions. Portable Node checks are not kernel-atomic and cannot eliminate same-UID swaps between a check and its following syscall or shell subprocess.
 - `--force` replaces only declared regular targets; never delete unrelated files or follow symlinks.
-- MCP config preflight completes before schema copy; failed config writes roll back schema installation, and later MCP opt-in reuses an installed schema without `--force`.
+- MCP config preflight completes before schema copy; failed or later-aborted installs restore committed config changes and roll back schema installation, and later MCP opt-in reuses an installed schema without `--force`.
+- Managed skill acquisition always invokes `git` by program name through `PATH`; environment variables never select another executable.
 - Public schema validation includes optional catalog checks; remote catalogs contain no auth, headers, secrets, or network calls.
 - `set-change-schema` dry-runs unless `--apply` is explicit, updates only the selected change's `.openspec.yaml`, and gates graph mismatches behind `--allow-incompatible`.
 - `opsx-schema handoff` adds strict pre-authority parsing, active selected-change authority, deterministic graph diff output, detected-race checks, fresh-status postflight, and owned rollback; Node filesystem rename is not an atomic compare-and-swap primitive.
