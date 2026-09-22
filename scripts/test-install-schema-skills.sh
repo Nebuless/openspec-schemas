@@ -34,6 +34,22 @@ printf '%s\n' \
 cmp -s "$EXPECTED_MANIFEST" "$ROOT/openspec/schemas/intent-driven-design/skills.txt" ||
 	fail "intent-driven-design manifest must contain the exact five source-qualified baseline skills"
 
+EXPECTED_COMPOUND=$TMP/compound-intent-driven-skills.txt
+printf '%s\n' \
+	"EveryInc/compound-engineering-plugin${TAB}skills/ce-brainstorm" \
+	"EveryInc/compound-engineering-plugin${TAB}skills/ce-plan" \
+	"EveryInc/compound-engineering-plugin${TAB}skills/ce-work" \
+	"EveryInc/compound-engineering-plugin${TAB}skills/ce-simplify-code" \
+	"EveryInc/compound-engineering-plugin${TAB}skills/ce-code-review" \
+	"EveryInc/compound-engineering-plugin${TAB}skills/ce-compound" \
+	"Fission-AI/OpenSpec${TAB}skills/openspec-explore" \
+	"Fission-AI/OpenSpec${TAB}skills/openspec-propose" \
+	"Fission-AI/OpenSpec${TAB}skills/openspec-apply-change" \
+	"Fission-AI/OpenSpec${TAB}skills/openspec-sync-specs" \
+	"Fission-AI/OpenSpec${TAB}skills/openspec-archive-change" >"$EXPECTED_COMPOUND"
+cmp -s "$EXPECTED_COMPOUND" "$ROOT/openspec/schemas/compound-intent-driven/skills.txt" ||
+	fail "compound-intent-driven manifest must contain exact CE and OpenSpec lifecycle skills"
+
 PACKAGING_SPEC=$ROOT/openspec/specs/custom-schema-packaging/spec.md
 grep -Fq '<skill-name>' "$PACKAGING_SPEC" || fail "canonical contract must retain legacy bare names"
 grep -Fq '<github-owner/repository><TAB><repository-relative-skill-directory>' "$PACKAGING_SPEC" ||

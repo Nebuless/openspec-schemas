@@ -336,12 +336,14 @@ it with the same command above; no separate plugin installation is required.
 
 ### Step 7: Install Compound Command Adapters
 
-For `compound-intent-driven`, Step 6 installs only these six upstream Compound
-Engineering skills: `ce-brainstorm`, `ce-plan`, `ce-work`,
-`ce-simplify-code`, `ce-code-review`, and `ce-compound`. Its `skills.txt` does
-not install slash commands.
+For `compound-intent-driven`, Step 6 installs optional companion skills: six
+unchanged focused Compound Engineering helpers (`ce-brainstorm`, `ce-plan`,
+`ce-work`, `ce-simplify-code`, `ce-code-review`, and `ce-compound`) plus five
+OpenSpec lifecycle helpers (`openspec-explore`, `openspec-propose`,
+`openspec-apply-change`, `openspec-sync-specs`, and
+`openspec-archive-change`). Its `skills.txt` does not install slash commands.
 
-Seven adapters ship in this repository. For this local or unreleased fallback,
+Nine adapters ship in this repository. For this local or unreleased fallback,
 choose your installed host and run its script from the target project:
 
 ```sh
@@ -375,7 +377,18 @@ Installed command/template surface:
 /opsx-ce-review [change]
 /opsx-ce-validate [change]
 /opsx-ce-compound [change]
+/opsx-ce-continue [change] <artifact|task>
+/opsx-ce-bulk-continue [change] <selection...>
 ```
+
+Continuation routers invoke exactly one deterministic operation after fresh
+OpenSpec CLI JSON preflight. Bulk continuation requires explicit selections;
+only disjoint non-sync/non-archive operations may run concurrently, with all
+others serialized in stable order. Routers never auto-archive, and archive
+requires direct user consent. Router results carry universal outcome, selected
+change/schema, artifact or task, batch, worker, dependency layer, proof,
+mutations, refreshed OpenSpec state, continuation, blocker, and one exact next
+command fields. Normal CE skills remain unchanged focused helpers.
 
 Confirm installed resources through your host's command/template discovery.
 OpenSpec remains in charge of artifact status, instructions, task tracking,

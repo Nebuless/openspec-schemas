@@ -7,7 +7,8 @@ Durable architecture designs and implementation plans for later review.
 ## Ownership
 
 `docs/architecture/` owns repository-level design decisions that do not belong
-to one OpenSpec change's normative specs or ADRs.
+to one OpenSpec change's normative specs or ADRs, including cross-cutting
+workflow and adapter boundaries.
 
 ## Local Contracts
 
@@ -15,6 +16,9 @@ to one OpenSpec change's normative specs or ADRs.
 - Keep ADRs and normative specs in their OpenSpec-owned paths.
 - Cite repository paths and external source revisions for material decisions.
 - Mark proposed work separately from implemented behavior.
+- For workflow or adapter designs, name lifecycle authority, durable state
+  owner, allowed mutation paths, handoff boundary, concurrency constraints, and
+  verification gate.
 
 ## Work Guidance
 

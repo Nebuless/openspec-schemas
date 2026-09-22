@@ -32,7 +32,7 @@ case $target in /*|./*|../*) ;; *) target=./$target ;; esac
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 source=$root/$resource
 destination=$target/$resource
-names='define plan work debug review validate compound'
+names='define plan work debug review validate compound continue bulk-continue'
 
 # Reject symlink ancestors, including dangling links, before any mutation.
 ancestor=$destination
@@ -70,4 +70,4 @@ for name in $names; do
 	fi
 	cp "$source/$file" "$destination/$file"
 done
-printf 'install-compound-adapters: installed 7 adapters for %s -> %s\n' "$host" "$destination"
+printf 'install-compound-adapters: installed 9 adapters for %s -> %s\n' "$host" "$destination"

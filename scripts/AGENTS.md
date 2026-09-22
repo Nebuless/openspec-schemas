@@ -9,7 +9,7 @@ POSIX installers plus Node stdlib lint/tests. Scripts are portable source of tru
 | Area | Files | Rule |
 |---|---|---|
 | Schema skills | `install-schema-skills.sh` | Manifest preflight before clone/copy; source-qualified entries use literal tabs. |
-| Compound adapters | `install-compound-adapters.sh` | Exactly seven declared adapter files per supported host. |
+| Compound adapters | `install-compound-adapters.sh` | Exactly nine declared adapter files per supported host. |
 | Package CLI tests | `test-release.js`, `test-opsx-schema.js`, `test-opsx-skills.js` | Protect CLI collision, activation, schema-local MCP catalogs, host detection/config safety, OPSX commands, managed skills, change-local schema updates, package allowlist, and hook behavior. |
 | Native handoff tests | `test-opsx-handoff.js` | Protect parser, OpenSpec authority, graph diff, metadata transaction, rollback, and packed CLI behavior. |
 | View runtime tests | `test-opsx-view.js`, `test-opsx-view-native.mjs` | Keep Node20-safe parser/preflight/spawn checks separate from supported Node26.4 FFI renderer smoke. |

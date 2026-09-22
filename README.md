@@ -19,7 +19,7 @@ Fork additions include:
 
 - npm package and `openspec-schemas` CLI
 - `intent-driven-engineering`, `intent-driven-superpowers`, `compound-intent-driven`, and `intent-driven-design`
-- Compound adapters
+- Compound lifecycle adapters and OpenSpec lifecycle companion skills
 - source-aware skill installer
 - guarded schema switching and managed skills
 - opt-in MCP catalogs
@@ -40,7 +40,7 @@ companion skills.
 | [`intent-driven`](./openspec/schemas/intent-driven/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Complex work needs behaviour specs, design, and durable decisions |
 | [`intent-driven-engineering`](./openspec/schemas/intent-driven-engineering/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work needs source-aware engineering skills and phase guidance |
 | [`intent-driven-superpowers`](./openspec/schemas/intent-driven-superpowers/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work uses Superpowers implementation, debugging, review, and verification skills |
-| [`compound-intent-driven`](./openspec/schemas/compound-intent-driven/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work uses Compound Engineering's define, plan, build, simplify, review, and learning loop |
+| [`compound-intent-driven`](./openspec/schemas/compound-intent-driven/README.md) | `proposal -> (specs, design) -> adr -> tasks` | Intent-driven work uses Compound Engineering's core loop with OpenSpec lifecycle helpers and safe continuation adapters |
 | [`intent-driven-design`](./openspec/schemas/intent-driven-design/README.md) | `journey -> proposal -> (specs, design) -> adr -> tasks` | Product, UI, or platform work needs discovery evidence, explicit user decisions, and durable architecture records |
 | [`event-driven`](./openspec/schemas/event-driven/README.md) | `event-storming -> event-modeling -> specs -> design -> asyncapi -> tasks` | Event-centric or AsyncAPI-first systems |
 | [`minimalist`](./openspec/schemas/minimalist/README.md) | `specs -> tasks` | Small, well-scoped, low-risk changes |
@@ -70,10 +70,13 @@ Install and activate a schema from your project directory:
 nub dlx --minimum-release-age-exclude=@nebulesstech/openspec-schemas -p @nebulesstech/openspec-schemas@latest openspec-schemas install <schema-name> -t . -i
 ```
 
-Each package includes a `skills.txt` manifest. Skills and Compound host adapters
-are optional. See the [agent install guide](./AGENT_INSTALL.md) for complete
-prerequisites, install choices, collision rules, skills, adapters, and local or
-unreleased fallback.
+Each package includes a `skills.txt` manifest. Companion skills and Compound host adapters
+are optional. `compound-intent-driven` adds OpenSpec lifecycle companions for
+explore, propose, apply, sync, and archive, plus `/opsx-ce-*` adapters. OpenSpec
+CLI state remains lifecycle authority: continuation commands act only on an
+explicit selection, and archive remains user-controlled. See the [agent install
+guide](./AGENT_INSTALL.md) for complete prerequisites, install choices,
+collision rules, skills, adapters, and local or unreleased fallback.
 
 Schemas may also include a strict read-only `mcp.yaml` catalog. After explicit
 approval, install selected catalog entries with `--mcp` and `-a`; see the agent
