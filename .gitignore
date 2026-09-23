@@ -6,6 +6,7 @@ codex.md
 AGENTS.md
 !docs/architecture/AGENTS.md
 /.omo/
+/backlog/cook-state.json
 .qlty/logs
 .qlty/out
 .qlty/plugin_cachedir

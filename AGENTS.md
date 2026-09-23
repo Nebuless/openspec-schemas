@@ -26,7 +26,8 @@ Copyable OpenSpec workflow schemas, companion skill manifests, and Compound Engi
 - Native `opsx-schema` read commands expose stable JSON envelopes for project state, diagnostics, schema resolution, and managed skill state; mutations stay explicit through `--yes`, `--apply`, `--force`, and `--allow-incompatible`. View previews show bounded summaries; incompatible handoffs require explicit acknowledgement and a new preview before exact confirmation.
 - `bin/opsx-ipc-protocol.js` owns the versioned v2 private envelope contract; `bin/opsx-view-actions.js` owns parent-side preview tokens, selector validation, worker-bounded supported mutations, and cancellation fencing. Sidecar receives no raw command, filesystem, environment, or token-rendering authority.
 - `.omo/` and generated `.qlty` state are local. Never edit, package, lint, or commit them.
-- No CE-native plan/tracker or automatic commits, branches, pushes, issues, PRs, or OpenSpec stage advancement.
+- No CE-native plan/tracker or automatic commits, branches, pushes, issues, or OpenSpec stage advancement.
+- Default to local CI and local integration when work can merge locally. Do not create or push a PR unless the user explicitly requests one.
 
 ## Documentation Map
 
