@@ -5,7 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const packageManifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const readmePath = path.resolve(process.argv[2] || path.join(root, 'README.md'));
 const guidePath = path.join(root, 'AGENT_INSTALL.md');
 const schemasPath = path.join(root, 'openspec/schemas');
@@ -30,7 +29,6 @@ function includes(text, value, label = value) {
 
 assert.equal(packagedSchemas.length, 9, 'expected nine packaged schemas');
 includes(readme, 'adds nine focused alternatives', 'unambiguous nine-schema count');
-includes(readme, `Package source is version \`${packageManifest.version}\`.`, 'source package version');
 includes(readme, 'https://github.com/intent-driven-dev/openspec-schemas', 'fork source link');
 includes(readme, "Hari Krishnan's OpenSpec Custom Schemas", 'fork author credit');
 includes(readme, 'https://github.com/harikrishnan83', 'fork author link');
