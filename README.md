@@ -58,7 +58,7 @@ companion skill for fenced-Gherkin authoring and executable acceptance testing.
 
 ## Install a Schema
 
-Package source is version `1.8.0`. Registry state is released `0.1.9` on `beta`, with `1.8.0` prepared for `latest`. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
+This checkout packages version `1.8.0`. Check `npm view @nebulesstech/openspec-schemas version dist-tags` for published channels. Package core targets Node >=20; the locked full toolchain for OpenSpec requires Node.js >=20.19.0. Nub and an initialized OpenSpec project are
 required. `opsx-schema view` additionally requires Node.js >=26.4, Linux x64
 glibc, a non-dumb TTY, and the optional OpenTUI runtime. The package manifest
 retains `@opentui/core@0.5.11` and `web-tree-sitter@0.25.10` as optional
@@ -83,6 +83,10 @@ approval, install selected catalog entries with `--mcp` and `-a`; see the agent
 install guide for host detection, safe config behavior, and Pi guidance.
 
 ## Inspect Project State
+
+The project plans to migrate to a new CLI surface with a TUI. That migration
+is not part of version `1.8.0`; use the commands below for this release.
+Migration instructions will accompany the new interface when it is ready.
 
 `opsx-schema` is additive. Existing `openspec-schemas` commands remain
 compatible for schema listing, validation, installation, and verification.

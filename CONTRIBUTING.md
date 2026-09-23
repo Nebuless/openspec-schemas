@@ -134,7 +134,7 @@ the same portable commands; no publishing or cloud upload is configured.
 
 ## Manual Release Checklist
 
-Current registry state: released `0.1.9` is `beta`; stable `1.8.0` is the `latest` candidate. Use `beta` for beta publication and `latest` only for an approved stable release.
+Check current dist-tags with `npm view @nebulesstech/openspec-schemas version dist-tags`. Use `beta` for beta publication and `latest` only for an approved stable release.
 
 1. Confirm ownership/access for `@nebulesstech/openspec-schemas`, review MIT licensing, and choose a new unpublished version.
 2. Update `package.json`, `CHANGELOG.md`, and `publishConfig.tag` together. Use `beta` for beta releases. Set `latest` only after explicit stable approval.

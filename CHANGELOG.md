@@ -11,7 +11,7 @@ All notable changes will be documented here using
 
 ### Changed
 
-- No changes yet.
+- Document the planned CLI/TUI migration; version `1.8.0` retains the current `opsx-schema` commands.
 
 ### Fixed
 
