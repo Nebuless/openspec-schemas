@@ -21,7 +21,7 @@ for host in opencode senpi pi atomic; do
 	set -- "$destination"/*
 	[ "$#" -eq 2 ] || fail 'collision partially installed files'
 	sh "$installer" "$host" "$target" --force
-	for name in define plan work debug review validate compound; do
+	for name in define plan work debug review validate compound continue bulk-continue; do
 		cmp "$root/$resource/opsx-ce-$name.md" "$destination/opsx-ce-$name.md" || fail "$host install differs"
 	done
 	[ "$(cat "$destination/unrelated.md")" = unrelated ] || fail 'unrelated file changed'
@@ -52,15 +52,15 @@ reject pi "$tmp/default" --force
 [ ! -e "$tmp/absent" ] || fail 'symlink target written'
 mkdir -p "$tmp/source/scripts" "$tmp/source/.pi/prompts"
 cp "$installer" "$tmp/source/scripts/"
-for name in define plan work debug review validate; do
+for name in define plan work debug review validate compound continue; do
 	cp "$root/.pi/prompts/opsx-ce-$name.md" "$tmp/source/.pi/prompts/"
 done
 installer=$tmp/source/scripts/install-compound-adapters.sh
 reject pi "$tmp/missing-source"
 [ ! -e "$tmp/missing-source" ] || fail 'missing source partially installed'
-cp "$root/.pi/prompts/opsx-ce-compound.md" "$tmp/source/.pi/prompts/"
+cp "$root/.pi/prompts/opsx-ce-bulk-continue.md" "$tmp/source/.pi/prompts/"
 reject pi "$tmp/source" --force
-for name in define plan work debug review validate compound; do
+for name in define plan work debug review validate compound continue bulk-continue; do
 	cmp "$root/.pi/prompts/opsx-ce-$name.md" "$tmp/source/.pi/prompts/opsx-ce-$name.md" || fail 'self-install changed source'
 done
 installer=$root/scripts/install-compound-adapters.sh

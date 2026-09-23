@@ -25,7 +25,7 @@ const unreleased = changelog.split('## [Unreleased]\n')[1]?.split(/\n## \[/)[0];
 assert(unreleased, 'missing Unreleased section');
 const added = unreleased.split('### Added\n')[1]?.split(/\n### /)[0];
 assert(added, 'missing Unreleased Added section');
-assert.equal(added.trim(), '- No changes yet.', 'Unreleased Added must remain an explicit placeholder');
+assert.equal(added.trim(), '- Add optional OpenSpec lifecycle companion skills and nine Compound lifecycle adapters, including continuation routers.', 'Unreleased Added must describe lifecycle additions');
 const released = changelog.split('## [0.1.9] - ')[1]?.split(/\n## \[/)[0];
 assert(released, 'missing released 0.1.9 section');
 assert(released.includes('- Add `intent-driven-design`, a discovery-led schema with journey evidence, explicit decisions, ADRs, and verifiable tasks.'), 'released section must contain intent-driven-design feature');

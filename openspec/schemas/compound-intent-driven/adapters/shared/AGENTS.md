@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Seven host-neutral `/opsx-ce-*` command bodies under OpenSpec lifecycle control.
+Nine host-neutral `/opsx-ce-*` command bodies under OpenSpec lifecycle control.
 
 ## Ownership
 
@@ -10,7 +10,7 @@ This directory owns canonical adapter text. Host paths only project it.
 
 ## Local Contracts
 
-`opsx-ce-define`, `opsx-ce-plan`, `opsx-ce-work`, `opsx-ce-debug`, `opsx-ce-review`, `opsx-ce-validate`, `opsx-ce-compound`.
+- `opsx-ce-define`, `opsx-ce-plan`, `opsx-ce-work`, `opsx-ce-debug`, `opsx-ce-review`, `opsx-ce-validate`, `opsx-ce-compound`, `opsx-ce-continue`, `opsx-ce-bulk-continue`.
 
 ## Work Guidance
 

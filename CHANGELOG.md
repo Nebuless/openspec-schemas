@@ -7,7 +7,7 @@ All notable changes will be documented here using
 
 ### Added
 
-- No changes yet.
+- Add optional OpenSpec lifecycle companion skills and nine Compound lifecycle adapters, including continuation routers.
 
 ### Changed
 

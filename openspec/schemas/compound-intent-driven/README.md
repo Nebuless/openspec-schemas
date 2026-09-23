@@ -97,8 +97,13 @@ openspec schema validate compound-intent-driven
 
 ## Associated Skills
 
-`skills.txt` declares source-qualified, MIT-licensed core-loop skills from
+`skills.txt` declares optional source-qualified companion skills: MIT-licensed
+core-loop skills from
 [EveryInc/compound-engineering-plugin](https://github.com/EveryInc/compound-engineering-plugin).
+It also declares optional lifecycle skills from
+[Fission-AI/OpenSpec](https://github.com/Fission-AI/OpenSpec):
+`openspec-explore`, `openspec-propose`, `openspec-apply-change`,
+`openspec-sync-specs`, and `openspec-archive-change`.
 Run the catalog installer to copy them into a target project's
 `.agents/skills/`:
 
@@ -114,13 +119,17 @@ bash /path/to/openspec-schemas/scripts/install-schema-skills.sh \
 - `ce-code-review` — diff review against intent and project standards.
 - `ce-compound` — durable learning capture when it clears its eligibility bar.
 
+OpenSpec lifecycle skills are optional companion helpers. OpenSpec CLI JSON
+remains lifecycle authority; normal CE skills remain unchanged, focused
+helpers.
+
 The source plugin is MIT licensed. This schema is an independent, compact
 mapping of its documented core loop to OpenSpec artifacts; it does not copy the
 plugin's complete workflow or create a competing lifecycle.
 
 ## Shipped Host Command Adapters
 
-`skills.txt` supplies only the six CE skills above, not commands. Seven
+`skills.txt` supplies optional companion skills, not commands. Nine
 artifact-first adapters ship separately, with canonical host-neutral bodies
 under `adapters/shared/`. OpenCode resources add only description frontmatter;
 Senpi, Pi, and Atomic resources are byte-identical plain templates.
@@ -150,6 +159,8 @@ resource discovery in your installed host after installation.
 /opsx-ce-review [change]
 /opsx-ce-validate [change]
 /opsx-ce-compound [change]
+/opsx-ce-continue [change] <artifact|task>
+/opsx-ce-bulk-continue [change] <selection...>
 ```
 
 Each adapter resolves the selected change, reads `openspec status` and the
@@ -210,6 +221,16 @@ On every handoff, an adapter returns completed work, proof or findings,
 mutations, continuation or unresolved questions, refreshed OpenSpec status, and
 the exact next OpenSpec command. It does not select the next stage itself.
 OpenSpec owns artifact state, stage readiness, progression, and completion.
+Continuation routers use repeated one-operation invocations and never
+auto-archive. Bulk continuation requires explicit selected changes, builds
+candidates independently, runs concurrent operations only for disjoint
+non-sync/non-archive operations, and serializes all other candidates in stable
+order. Archive remains gated by direct user consent. Router packets include
+outcome, selected change/schema, artifact or task, batch, worker, dependency
+layer, proof, mutations, refreshed OpenSpec state, continuation, blocker, and
+one exact next command.
+When multiple planning artifacts are ready, stable order is `specs`, `design`,
+`adr`, then `tasks`.
 
 ## Offline Adapter Checks
 
@@ -218,7 +239,7 @@ sh scripts/test-compound-adapters.sh
 sh scripts/test-install-compound-adapters.sh
 ```
 
-Run from the repository clone. Checks cover seven canonical bodies, host
+Run from the repository clone. Checks cover nine canonical bodies, host
 frontmatter/body parity, stage guardrails, all host mappings, collision
 preflight, force replacement, missing sources, symlink refusal, default target,
 and preservation of unrelated files. These tests make no network calls and

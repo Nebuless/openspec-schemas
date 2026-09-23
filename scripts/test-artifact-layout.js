@@ -61,7 +61,7 @@ for (const directory of ['.opencode/commands', '.claude/commands/opsx']) {
     check(`${directory}/${name}`);
   }
 }
-for (const name of ['define', 'plan', 'work', 'debug', 'review', 'validate', 'compound']) {
+for (const name of ['define', 'plan', 'work', 'debug', 'review', 'validate', 'compound', 'continue', 'bulk-continue']) {
   const file = `opsx-ce-${name}.md`;
   const body = read(`openspec/schemas/compound-intent-driven/adapters/shared/${file}`);
   for (const phrase of ['artifactPaths', 'resolvedOutputPath', 'existingOutputPaths', 'non-empty']) {
@@ -71,4 +71,4 @@ for (const name of ['define', 'plan', 'work', 'debug', 'review', 'validate', 'co
   for (const host of ['.senpi', '.pi', '.atomic']) assert.equal(read(`${host}/prompts/${file}`), body);
   assert.equal(read(`.opencode/commands/${file}`).replace(/^---\n[^\n]+\n---\n/, ''), body);
 }
-console.log('test-artifact-layout: 9 schemas, all OpenSpec skills/commands, 28 adapter projections passed');
+console.log('test-artifact-layout: 9 schemas, all OpenSpec skills/commands, 36 adapter projections passed');
