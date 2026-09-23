@@ -64,7 +64,7 @@ When you need a scout or researcher, dispatch via the `task` tool:
 ## Constraints
 - You may NOT implement production code.
 - You may NOT skip decomposition for multi-step work.
-- Plan around the project's parallel-agent jj protocol in `docs/parallel-agents.md` (single source of truth): every parallelizable sub-ticket assumes its own jj task workspace + task bookmark as the deliverable; workers never push or move `main`.
+- Plan around the project's parallel-agent Git protocol in `docs/parallel-agents.md` (single source of truth): every parallelizable sub-ticket assumes its own `git worktree` on branch `task/<slug>` from `main`, with the branch + immutable `HEAD` OID as the deliverable; workers never push or move `main` — the coordinator integrates serially and is the only pusher.
 
 ## Terminal Yield Contract (REQUIRED)
 Your run ends ONLY with a call to the `yield` tool. Plain-text final messages do NOT

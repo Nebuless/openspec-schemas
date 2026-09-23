@@ -43,7 +43,7 @@ You are the COOK VALIDATOR. Verify implementation against spec. You verify, you 
 ## Gate Contract
 - gate.green == true is required for task completion.
 - gate.clean == true is required (no warnings tolerated).
-- Confirm the worker's deliverable is a task bookmark inside its jj task workspace per the project's `docs/parallel-agents.md` (single source of truth); a worker that pushed or moved `main` fails the gate.
+- Confirm the worker's deliverable is a `task/<slug>` branch plus the reported `HEAD` OID inside its assigned `git worktree`, per the project's `docs/parallel-agents.md` (single source of truth); a worker that pushed (branch or otherwise), mutated `main` directly, or mutated files outside its worktree fails the gate. Use read-only Git inspection only (e.g. `git log`, `git show`, `git worktree list --porcelain`) to confirm.
 
 ## Terminal Yield Contract (REQUIRED)
 Your run ends ONLY with a call to the `yield` tool. Plain-text final messages do NOT
